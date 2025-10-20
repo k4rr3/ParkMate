@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "842440529931",
+    "project_id": "parkmate-af135",
+    "storage_bucket": "parkmate-af135.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842440529931:android:1f664c23c8dda26cf9cf0e",
+        "android_client_info": {
+          "package_name": "com.example.parkmate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "842440529931-dc7e880t9drhuo9ibb4oq8cfnjedqkvj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDc08Y0oWjZFBS_PxYNAUZxP0q4aNRoztY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "842440529931-dc7e880t9drhuo9ibb4oq8cfnjedqkvj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
