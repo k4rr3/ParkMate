@@ -1,0 +1,27 @@
+buildscript {
+    ext {
+        compose_ui_version = '1.4.3' // bumped to a current 1.4.x release
+    }
+}
+
+plugins {
+    id 'com.android.application' version '8.1.1' apply false
+    id 'com.android.library' version '8.1.1' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.21' apply false
+    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin' version '2.0.1' apply false
+    id 'com.google.dagger.hilt.android' version '2.44' apply false
+    id("com.google.gms.google-services") version "4.4.2" apply false
+}
+
+
+//allprojects {
+//    // Required: you must exclude the Google Play service Maps SDK from
+//    // your transitive dependencies. This is to ensure there won't be
+//    // multiple copies of Google Maps SDK in your binary, as the Navigation
+//    // SDK already bundles the Google Maps SDK.
+//    configurations {
+//        implementation {
+//            exclude group: 'com.google.android.gms', module: 'play-services-maps'
+//        }
+//    }
+//}
