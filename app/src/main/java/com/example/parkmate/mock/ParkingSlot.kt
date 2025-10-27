@@ -13,7 +13,8 @@ data class ParkingSpot(
     val price: String,
     val latitude: Double,
     val longitude: Double,
-    val color: Color
+    val color: Color,
+    val category: String
 )
 
 val parkingSpots = listOf(
@@ -24,16 +25,18 @@ val parkingSpots = listOf(
         price = "Free",
         latitude = 41.6175,
         longitude = 0.6200,
-        color = Green
+        color = Green,
+        category = "Parking"
     ),
     ParkingSpot(
         id = 2,
         name = "Central Mall",
         spots = 8,
         price = "$2/hr",
-        latitude = 41.6195,
-        longitude = 0.6250,
-        color = Orange
+        latitude = 41.615476,
+        longitude = 0.625473,
+        color = Orange,
+        category = "Parking"
     ),
     ParkingSpot(
         id = 3,
@@ -42,7 +45,8 @@ val parkingSpots = listOf(
         price = "$3/hr",
         latitude = 41.6155,
         longitude = 0.6180,
-        color = Green
+        color = Green,
+        category = "Parking"
     ),
     ParkingSpot(
         id = 4,
@@ -51,7 +55,8 @@ val parkingSpots = listOf(
         price = "$4/hr",
         latitude = 41.6185,
         longitude = 0.6270,
-        color = Red
+        color = Red,
+        category = "Parking"
     ),
     ParkingSpot(
         id = 5,
@@ -60,6 +65,7 @@ val parkingSpots = listOf(
         price = "$1/hr",
         latitude = 41.6145,
         longitude = 0.6230,
-        color = Blue
+        color = Blue,
+        category = "Parking"
     )
 )
