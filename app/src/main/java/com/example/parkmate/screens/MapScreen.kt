@@ -52,14 +52,9 @@ fun MapScreen() {
                 selectedFilter = selectedFilter,
                 onFilterSelected = { selectedFilter = it }
             )
-
-            Image(
-                painter = painterResource(id = R.drawable.map_photo_placeholder),
-                contentDescription = "Map placeholder image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                ,
+            MapView(
+                parkingSpots = spots,
+                modifier = Modifier.weight(1f)
             )
         }
     }
