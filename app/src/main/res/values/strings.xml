@@ -128,5 +128,16 @@
     <string name="mechanic">Mechanic</string>
     <string name="wash">Wash</string>
     <string name="map_screen_navbar">Map</string>
+    <string name="edit">Edit</string>
+    <string name="view">View</string>
+    <string name="admin_navbar">Admin Portal</string>
+    <string name="all_users">All users</string>
+    <string name="active">Active</string>
+    <string name="inactive">Inactive</string>
+    <string name="admins">Admins</string>
+    <string name="search_users">Search users</string>
+    <string name="total_users">Total users</string>
+    <string name="active_today">Active today</string>
+    <string name="add_new_user">Add new user</string>
 
 </resources>
