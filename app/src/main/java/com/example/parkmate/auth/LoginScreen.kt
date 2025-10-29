@@ -23,7 +23,7 @@ import com.example.parkmate.MainActivity
 import com.example.parkmate.R
 import com.example.parkmate.screens.Screen
 import com.example.parkmate.ui.theme.ParkMateTheme
-import com.example.parkmate.ui.theme.*
+import com.example.parkmate.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

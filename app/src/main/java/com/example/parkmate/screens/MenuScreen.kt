@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.DirectionsCarFilled
+import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,7 +42,9 @@ import com.example.parkmate.ui.theme.Green
 import com.example.parkmate.ui.theme.LightBlue
 import com.example.parkmate.ui.theme.LightGreen
 import com.example.parkmate.ui.theme.LightOrange
+import com.example.parkmate.ui.theme.LightRed
 import com.example.parkmate.ui.theme.Orange
+import com.example.parkmate.ui.theme.Red
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +90,14 @@ fun MenuScreen(navController: NavHostController) {
                     iconTint = Green,
                     title = stringResource(R.string.user_profile_navbar),
                     destination = Screen.ProfileScreen.route,
+                )
+                MenuButton(
+                    navController = navController,
+                    icon = Icons.Outlined.ManageAccounts,
+                    iconBackground = LightRed,
+                    iconTint = Red,
+                    title = stringResource(R.string.admin_navbar),
+                    destination = Screen.AdminScreen.route,
                 )
             }
         }
