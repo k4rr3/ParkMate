@@ -13,6 +13,7 @@ import com.example.parkmate.auth.LoginScreen
 import com.example.parkmate.auth.SignUpScreen
 import com.example.parkmate.feature_splash_screen.presentation.SplashScreen
 import com.example.parkmate.ui.MapScreen
+import com.example.parkmate.ui.screens.AdminScreen
 
 @SuppressLint("MissingPermission")
 @Composable
@@ -67,7 +68,9 @@ fun Navigation(
         composable(route= Screen.MapScreen.route){
             MapScreen()
         }
-
+        composable(route= Screen.AdminScreen.route){
+            AdminScreen()
+        }
         /* composable(route = Screen.SavedCarSpotsScreen.route) {
              SavedCarSpotsScreen(navController = navController)
          }

@@ -26,14 +26,14 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Purple,
+    secondary = Purple,
+    tertiary = Purple
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Blue,
-    secondary = PurpleGrey40,
+    secondary = Purple,
     tertiary = Pink40
 )
 
@@ -103,67 +103,3 @@ fun ParkMateTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    label: @Composable (() -> Unit)? = null,
-    placeholder: @Composable (() -> Unit)? = null,
-    singleLine: Boolean = false,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    enabled: Boolean = true,
-    readOnly: Boolean = false,
-    isError: Boolean = false,
-    supportingText: @Composable (() -> Unit)? = null,
-    maxLines: Int = Int.MAX_VALUE
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier,
-        label = label,
-        placeholder = placeholder,
-        singleLine = singleLine,
-        keyboardOptions = keyboardOptions,
-        trailingIcon = trailingIcon,
-        enabled = enabled,
-        readOnly = readOnly,
-        isError = isError,
-        supportingText = supportingText,
-        maxLines = maxLines
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PasswordTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    label: @Composable (() -> Unit)? = null,
-    placeholder: @Composable (() -> Unit)? = null,
-    singleLine: Boolean = false,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    enabled: Boolean = true,
-    isError: Boolean = false, // Added for error handling
-    supportingText: @Composable (() -> Unit)? = null // Added for error feedback
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier,
-        label = label,
-        placeholder = placeholder,
-        singleLine = singleLine,
-        keyboardOptions = keyboardOptions,
-        trailingIcon = trailingIcon,
-        enabled = enabled,
-        isError = isError,
-        supportingText = supportingText,
-        visualTransformation = PasswordVisualTransformation()
-    )
-}
