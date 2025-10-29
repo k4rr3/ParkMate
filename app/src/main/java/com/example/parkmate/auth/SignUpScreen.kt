@@ -17,9 +17,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.parkmate.R
 import com.example.parkmate.screens.Screen
-import com.example.parkmate.ui.theme.PTextField
+import com.example.parkmate.ui.components.PTextField
 import com.example.parkmate.ui.theme.ParkMateTheme
-import com.example.parkmate.ui.theme.PasswordTextField
+import com.example.parkmate.ui.components.PasswordTextField
 
 
 
