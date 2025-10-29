@@ -37,14 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.parkmate.ui.theme.Blue
-import com.example.parkmate.ui.theme.Green
-import com.example.parkmate.ui.theme.LightBlue
-import com.example.parkmate.ui.theme.LightGreen
-import com.example.parkmate.ui.theme.LightOrange
-import com.example.parkmate.ui.theme.LightRed
-import com.example.parkmate.ui.theme.Orange
-import com.example.parkmate.ui.theme.Red
+import com.example.parkmate.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,8 +60,8 @@ fun MenuScreen(navController: NavHostController) {
                 MenuButton(
                     navController = navController,
                     icon = Icons.Outlined.Settings,
-                    iconBackground = LightBlue,
-                    iconTint = Blue,
+                    iconBackground = SettingsIconBackground,
+                    iconTint = SettingsIcon,
                     title = stringResource(R.string.settings_navbar),
                     destination = Screen.SettingsScreen.route,
                 )
@@ -76,8 +69,8 @@ fun MenuScreen(navController: NavHostController) {
                 MenuButton(
                     navController = navController,
                     icon = Icons.Outlined.DirectionsCarFilled,
-                    iconBackground = LightOrange,
-                    iconTint = Orange,
+                    iconBackground = CarListIconBackground,
+                    iconTint = CarListIcon,
                     title = stringResource(R.string.car_list),
                     destination = Screen.CarListScreen.route,
 
@@ -86,16 +79,16 @@ fun MenuScreen(navController: NavHostController) {
                 MenuButton(
                     navController = navController,
                     icon = Icons.Outlined.AccountCircle,
-                    iconBackground = LightGreen,
-                    iconTint = Green,
+                    iconBackground = UserIconBackground,
+                    iconTint = UserIcon,
                     title = stringResource(R.string.user_profile_navbar),
                     destination = Screen.ProfileScreen.route,
                 )
                 MenuButton(
                     navController = navController,
                     icon = Icons.Outlined.ManageAccounts,
-                    iconBackground = LightRed,
-                    iconTint = Red,
+                    iconBackground = AdminIconBackGround,
+                    iconTint = AdminIcon,
                     title = stringResource(R.string.admin_navbar),
                     destination = Screen.AdminScreen.route,
                 )
