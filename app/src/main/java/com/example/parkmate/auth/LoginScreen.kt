@@ -55,7 +55,7 @@ fun LoginScreen(navController: NavHostController,
 
     ParkMateTheme {
         Scaffold(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
         ) { paddingValues ->
             Column(
                 modifier = Modifier
@@ -82,7 +82,7 @@ fun LoginScreen(navController: NavHostController,
                         mailErrorMessage?.let {
                             Text(
                                 text = it,
-                                color = Color.Red
+                                color =  MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -100,7 +100,7 @@ fun LoginScreen(navController: NavHostController,
                         passwordErrorMessage?.let {
                             Text(
                                 text = it,
-                                color = Color.Red
+                                color =  MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -111,7 +111,7 @@ fun LoginScreen(navController: NavHostController,
                 errorMessage?.let {
                     Text(
                         it,
-                        color = Color.Red, // Use a more noticeable color
+                        color =  MaterialTheme.colorScheme.error, // Use a more noticeable color
                         style = MaterialTheme.typography.bodyMedium, // Increase font size
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -178,9 +178,9 @@ fun LoginScreen(navController: NavHostController,
                         contentDescription = "Google Logo",
                         modifier = Modifier
                             .size(24.dp)
-                            .background(Color.White, shape = CircleShape)
+                            .background(MaterialTheme.colorScheme.background, shape = CircleShape)
                             .padding(0.dp),
-                        tint = Color.Unspecified
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(

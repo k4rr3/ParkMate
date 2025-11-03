@@ -139,5 +139,13 @@
     <string name="total_users">Total users</string>
     <string name="active_today">Active today</string>
     <string name="add_new_user">Add new user</string>
+    <string name="app_settings">App Settings</string>
+    <string name="English">English</string>
+    <string name="Language">Language</string>
+    <string name="Notifications">Notifications</string>
+    <string name="location_services">Location Services</string>
+    <string name="Always">Always</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="system">System</string>
 
 </resources>
