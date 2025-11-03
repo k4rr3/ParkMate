@@ -53,7 +53,7 @@ fun LoginScreen(navController: NavHostController,
         }
     }
 
-    ParkMateTheme {
+
         Scaffold(
             modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
         ) { paddingValues ->
@@ -230,7 +230,7 @@ fun LoginScreen(navController: NavHostController,
                 }
             }
         }
-    }
+
 
 
 

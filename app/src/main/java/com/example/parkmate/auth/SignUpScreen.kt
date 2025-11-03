@@ -48,7 +48,7 @@ fun SignUpScreen(navController: NavHostController) {
         }
     }
 
-    ParkMateTheme {
+
         Scaffold(
             modifier = Modifier.fillMaxSize()
         ) { paddingValues ->
@@ -189,7 +189,7 @@ fun SignUpScreen(navController: NavHostController) {
                 }
             }
         }
-    }
+    
 }
 
 
