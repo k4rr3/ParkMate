@@ -77,7 +77,7 @@ fun SignUpScreen(navController: NavHostController) {
                         mailErrorMessage?.let {
                             Text(
                                 text = it,
-                                color = Color.Red
+                                color =  MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -95,7 +95,7 @@ fun SignUpScreen(navController: NavHostController) {
                         passwordErrorMessage?.let {
                             Text(
                                 text = it,
-                                color = Color.Red
+                                color =  MaterialTheme.colorScheme.error
                             )
                         }
                     }

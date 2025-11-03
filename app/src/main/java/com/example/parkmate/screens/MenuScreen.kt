@@ -24,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +50,7 @@ fun MenuScreen(navController: NavHostController) {
                 .padding(paddingValues)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF8F9FA))
+                .background(MaterialTheme.colorScheme.background)
         ) {
 
             Column(
@@ -60,8 +61,8 @@ fun MenuScreen(navController: NavHostController) {
                 MenuButton(
                     navController = navController,
                     icon = Icons.Outlined.Settings,
-                    iconBackground = SettingsIconBackground,
-                    iconTint = SettingsIcon,
+                    iconBackground = LightBlue,
+                    iconTint = Blue,
                     title = stringResource(R.string.settings_navbar),
                     destination = Screen.SettingsScreen.route,
                 )
@@ -69,8 +70,8 @@ fun MenuScreen(navController: NavHostController) {
                 MenuButton(
                     navController = navController,
                     icon = Icons.Outlined.DirectionsCarFilled,
-                    iconBackground = CarListIconBackground,
-                    iconTint = CarListIcon,
+                    iconBackground = LightOrange,
+                    iconTint = Orange,
                     title = stringResource(R.string.car_list),
                     destination = Screen.CarListScreen.route,
 
@@ -79,16 +80,16 @@ fun MenuScreen(navController: NavHostController) {
                 MenuButton(
                     navController = navController,
                     icon = Icons.Outlined.AccountCircle,
-                    iconBackground = UserIconBackground,
-                    iconTint = UserIcon,
+                    iconBackground = LightGreen,
+                    iconTint = Green,
                     title = stringResource(R.string.user_profile_navbar),
                     destination = Screen.ProfileScreen.route,
                 )
                 MenuButton(
                     navController = navController,
                     icon = Icons.Outlined.ManageAccounts,
-                    iconBackground = AdminIconBackGround,
-                    iconTint = AdminIcon,
+                    iconBackground = LightRed,
+                    iconTint = Red,
                     title = stringResource(R.string.admin_navbar),
                     destination = Screen.AdminScreen.route,
                 )
@@ -115,7 +116,7 @@ fun MenuButton(
             .clickable{
                 navController.navigate(destination)
             },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(

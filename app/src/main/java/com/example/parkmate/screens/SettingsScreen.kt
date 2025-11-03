@@ -14,14 +14,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.parkmate.ui.theme.*
+import com.example.parkmate.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+    themeViewModel: ThemeViewModel
+) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     var locationEnabled by remember { mutableStateOf(true) }
     var darkModeEnabled by remember { mutableStateOf(false) }
@@ -32,21 +36,19 @@ fun SettingsScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFFF5F5F5))
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // App Settings Section
-            SectionHeader(title = "App Settings")
+            SectionHeader(title = stringResource(R.string.app_settings))
 
             SettingsCard {
                 SettingsItem(
                     icon = Icons.Default.Language,
-                    iconBgColor = LightBlue,
-                    iconColor = Blue,
-                    title = "Language",
-                    subtitle = "English",
+                    title = stringResource(R.string.Language),
+                    subtitle = stringResource(R.string.English),
                     hasArrow = true,
                     onClick = { /* Handle click */ }
                 )
@@ -54,23 +56,9 @@ fun SettingsScreen() {
                 Divider(modifier = Modifier.padding(start = 72.dp))
 
                 SettingsItemWithSwitch(
-                    icon = Icons.Default.Notifications,
-                    iconBgColor = LightOrange,
-                    iconColor = Orange,
-                    title = "Notifications",
-                    subtitle = "Push, Email",
-                    checked = notificationsEnabled,
-                    onCheckedChange = { notificationsEnabled = it }
-                )
-
-                Divider(modifier = Modifier.padding(start = 72.dp))
-
-                SettingsItemWithSwitch(
                     icon = Icons.Default.LocationOn,
-                    iconBgColor = LightGreen,
-                    iconColor = Green,
-                    title = "Location Services",
-                    subtitle = "Always",
+                    title = stringResource(R.string.location_services),
+                    subtitle = stringResource(R.string.Always),
                     checked = locationEnabled,
                     onCheckedChange = { locationEnabled = it }
                 )
@@ -79,12 +67,10 @@ fun SettingsScreen() {
 
                 SettingsItemWithSwitch(
                     icon = Icons.Default.DarkMode,
-                    iconBgColor = LightGreen,
-                    iconColor = Green,
-                    title = "Dark Mode",
-                    subtitle = "System",
-                    checked = darkModeEnabled,
-                    onCheckedChange = { darkModeEnabled = it }
+                    title = stringResource(R.string.dark_mode),
+                    subtitle = stringResource(R.string.system),
+                    checked = themeViewModel.getDarkMode(),
+                    onCheckedChange = {  themeViewModel.toggleTheme() }
                 )
             }
 
@@ -96,8 +82,6 @@ fun SettingsScreen() {
             SettingsCard {
                 SettingsItem(
                     icon = Icons.Default.Shield,
-                    iconBgColor = LightGreen,
-                    iconColor = Green,
                     title = "Data Sharing",
                     subtitle = "Limited sharing",
                     hasArrow = true,
@@ -108,8 +92,6 @@ fun SettingsScreen() {
 
                 SettingsItem(
                     icon = Icons.Default.Security,
-                    iconBgColor = LightGreen,
-                    iconColor = Green,
                     title = "App Permissions",
                     subtitle = "Manage access",
                     hasArrow = true,
@@ -120,8 +102,6 @@ fun SettingsScreen() {
 
                 SettingsItem(
                     icon = Icons.Default.Help,
-                    iconBgColor = LightGreen,
-                    iconColor = Green,
                     title = "Help & Support",
                     subtitle = "FAQ, Contact us",
                     hasArrow = true,
@@ -132,8 +112,6 @@ fun SettingsScreen() {
 
                 SettingsItem(
                     icon = Icons.Default.Info,
-                    iconBgColor = LightGreen,
-                    iconColor = Green,
                     title = "About",
                     subtitle = "Version 2.4.1",
                     hasArrow = true,
@@ -153,7 +131,7 @@ fun SectionHeader(title: String) {
         text = title,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
-        color = Color.Gray,
+        color =  MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
     )
 }
@@ -164,7 +142,7 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column {
@@ -176,13 +154,11 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 fun SettingsItem(
     icon: ImageVector,
-    iconBgColor: Color,
-    iconColor: Color,
     title: String,
     subtitle: String?,
     hasArrow: Boolean = false,
     onClick: () -> Unit = {},
-    titleColor: Color = Color.Black
+    titleColor: Color =  MaterialTheme.colorScheme.onBackground
 ) {
     Row(
         modifier = Modifier
@@ -194,13 +170,13 @@ fun SettingsItem(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(iconBgColor),
+                .background(LightBlue),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                tint = iconColor,
+                tint = Blue,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -218,7 +194,7 @@ fun SettingsItem(
                 Text(
                     text = subtitle,
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color =  MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -227,7 +203,7 @@ fun SettingsItem(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Arrow",
-                tint = Color.LightGray,
+                tint =  MaterialTheme.colorScheme.surface,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -237,8 +213,6 @@ fun SettingsItem(
 @Composable
 fun SettingsItemWithSwitch(
     icon: ImageVector,
-    iconBgColor: Color,
-    iconColor: Color,
     title: String,
     subtitle: String?,
     checked: Boolean,
@@ -254,13 +228,13 @@ fun SettingsItemWithSwitch(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(iconBgColor),
+                .background(LightBlue),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                tint = iconColor,
+                tint = Blue,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -277,7 +251,7 @@ fun SettingsItemWithSwitch(
                 Text(
                     text = subtitle,
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color =  MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -286,7 +260,7 @@ fun SettingsItemWithSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
+                checkedThumbColor =  MaterialTheme.colorScheme.background,
                 checkedTrackColor = MaterialTheme.colorScheme.primary
             )
         )
