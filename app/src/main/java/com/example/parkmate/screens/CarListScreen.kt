@@ -53,8 +53,8 @@ fun CarListScreen(navController: NavHostController) {
             FloatingActionButton(
                 onClick = { /* Add new vehicle */ },
                 containerColor = Color(0xFF4CAF50),
-                contentColor = Color.White,
-                modifier = Modifier.padding(16.dp)
+                contentColor =  MaterialTheme.colorScheme.background,
+                modifier = Modifier.padding(16.dp).background(MaterialTheme.colorScheme.onSurface)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -67,7 +67,8 @@ fun CarListScreen(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .background(MaterialTheme.colorScheme.background),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(sampleVehicles) { vehicle ->
@@ -96,7 +97,7 @@ fun TopBar() {
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = "4 cars",
-            color = Color.Gray,
+            color =  MaterialTheme.colorScheme.surface,
             fontSize = 14.sp
         )
     }
@@ -125,13 +126,13 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(vehicle.iconColor),
+                        .background(CarListIcon),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.DirectionsCar,
                         contentDescription = null,
-                        tint = Color.White
+                        tint =  MaterialTheme.colorScheme.background
                     )
                 }
 
@@ -145,7 +146,7 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
                     )
                     Text(
                         text = vehicle.licensePlate,
-                        color = Color.Gray,
+                        color =  MaterialTheme.colorScheme.surface,
                         fontSize = 14.sp
                     )
                 }
@@ -160,7 +161,7 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
             Text(
                 text = vehicle.description,
                 fontSize = 14.sp,
-                color = Color.DarkGray
+                color =  MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -170,7 +171,7 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
                     onClick = { /* Renew parking */ },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Red
+                        containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
                     Icon(
@@ -207,8 +208,8 @@ fun StatusIndicator(status: VehicleStatus, detail: String) {
     ) {
         val color = when (status) {
             VehicleStatus.PARKED -> Green
-            VehicleStatus.DRIVING -> Blue
-            VehicleStatus.EXPIRED -> Red
+            VehicleStatus.DRIVING -> MaterialTheme.colorScheme.primary
+            VehicleStatus.EXPIRED -> MaterialTheme.colorScheme.error
         }
 
         Box(
@@ -235,7 +236,7 @@ fun StatusIndicator(status: VehicleStatus, detail: String) {
 
         Text(
             text = detail,
-            color = Color.Gray,
+            color =  MaterialTheme.colorScheme.surface,
             fontSize = 12.sp
         )
     }

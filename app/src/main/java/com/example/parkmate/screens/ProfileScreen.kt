@@ -58,11 +58,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.parkmate.R
-import com.example.parkmate.ui.theme.Blue
 import com.example.parkmate.ui.theme.LightGray
 
 @Composable
 fun ProfileScreen() {
+
     var notificationsEnabled by remember { mutableStateOf(true) }
 
 
@@ -70,9 +70,11 @@ fun ProfileScreen() {
     // Profile content
     Column(
         modifier = Modifier
+            .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            ,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Profile Image and Name
@@ -81,7 +83,7 @@ fun ProfileScreen() {
                 .size(100.dp)
                 .clip(CircleShape)
                 .background(LightGray)
-                .border(2.dp, Blue, CircleShape),
+                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             // Replace with actual profile image
@@ -89,7 +91,7 @@ fun ProfileScreen() {
                 text = "AC",
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
-                color = Blue
+                color = MaterialTheme.colorScheme.primary
             )
 
             // Blue verification badge
@@ -97,14 +99,14 @@ fun ProfileScreen() {
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)
-                    .background(Blue)
+                    .background(MaterialTheme.colorScheme.primary)
                     .align(Alignment.BottomEnd)
-                    .border(2.dp, Color.White, CircleShape),
+                    .border(2.dp,  MaterialTheme.colorScheme.background, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "✓",
-                    color = Color.White,
+                    color =  MaterialTheme.colorScheme.background,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -116,13 +118,14 @@ fun ProfileScreen() {
         Text(
             text = "Aleix Cerqueda",
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color =  MaterialTheme.colorScheme.onBackground
         )
 
         Text(
             text = "${stringResource(R.string.member_since)} 2025",
             fontSize = 14.sp,
-            color = Color.Gray
+            color =  MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -182,7 +185,7 @@ fun ProfileScreen() {
             onClick = { /* TODO */ },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Blue)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text(
                 text = stringResource(R.string.save_changes),
@@ -196,11 +199,13 @@ fun ProfileScreen() {
         // Sign Out Button
         TextButton(
             onClick = { /* TODO */ },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text(
                 text = stringResource(R.string.sign_out),
-                color = Color.Red,
+                color =  MaterialTheme.colorScheme.background,
                 fontSize = 16.sp
             )
         }
@@ -217,7 +222,7 @@ fun SectionCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -228,7 +233,7 @@ fun SectionCard(
                 text = title,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
-                color = Color.Black
+                color =  MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -258,7 +263,7 @@ fun ProfileItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Blue,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
 
@@ -270,7 +275,7 @@ fun ProfileItem(
                 Text(
                     text = label,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color =  MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
@@ -282,7 +287,7 @@ fun ProfileItem(
                     Text(
                         text = additionalInfo,
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color =  MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -294,7 +299,7 @@ fun ProfileItem(
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit",
-                    tint = Blue,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -328,7 +333,7 @@ fun SettingsItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Blue,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
 
@@ -343,7 +348,7 @@ fun SettingsItem(
             Icon(
                 imageVector = Icons.Outlined.ChevronRight,
                 contentDescription = "Navigate",
-                tint = Color.Gray
+                tint =  MaterialTheme.colorScheme.surface
             )
         }
 

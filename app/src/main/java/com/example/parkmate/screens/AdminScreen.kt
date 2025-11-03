@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.*
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,9 +21,9 @@ import androidx.compose.ui.unit.sp
 import com.example.parkmate.R
 import com.example.parkmate.mock.sampleUsers
 import com.example.parkmate.ui.components.UserListItem
-import com.example.parkmate.ui.theme.Blue
 import com.example.parkmate.ui.theme.Green
 import com.example.parkmate.ui.theme.LightGray
+import com.example.parkmate.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,12 +36,13 @@ fun AdminScreen() {
         stringResource(R.string.admins)
     )
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         // Search Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.onSurface),
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
@@ -57,9 +59,9 @@ fun AdminScreen() {
                 onClick = { /* Filter action */ },
                 modifier = Modifier
                     .size(48.dp)
-                    .background(LightGray, RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
             ) {
-                Icon(Icons.Default.FilterList, contentDescription = "Filter")
+                Icon(Icons.Default.FilterList, contentDescription = "Filter", Modifier.background(MaterialTheme.colorScheme.primary))
             }
         }
 
@@ -89,7 +91,7 @@ fun AdminScreen() {
                 title = stringResource(R.string.total_users),
                 count = "1,247",
                 icon = Icons.Default.People,
-                iconTint = Blue
+                iconTint = MaterialTheme.colorScheme.primary,
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -139,7 +141,7 @@ fun StatCard(
 )
 {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
         Row(
             modifier = Modifier
@@ -167,7 +169,7 @@ fun StatCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = count,

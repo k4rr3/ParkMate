@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,7 +23,7 @@ fun StatusBadge(status: UserStatus) {
     val (backgroundColor, textColor, label) = when (status) {
         UserStatus.ACTIVE -> Triple(Green.copy(alpha = 0.1f), Green, "Active")
         UserStatus.PENDING -> Triple(Orange.copy(alpha = 0.1f), Orange, "Pending")
-        UserStatus.INACTIVE -> Triple(Color.Gray.copy(alpha = 0.1f), Color.Gray, "Inactive")
+        UserStatus.INACTIVE -> Triple(MaterialTheme.colors.surface.copy(alpha = 0.1f), androidx.compose.material3.MaterialTheme.colorScheme.surface, "Inactive")
         UserStatus.ADMIN -> Triple(Purple.copy(alpha = 0.1f), Purple, "Admin")
     }
 

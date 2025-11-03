@@ -1,5 +1,6 @@
 package com.example.parkmate.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -37,12 +38,13 @@ fun UserListItem(user: User) {
         ) {
             Text(
                 text = user.name,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                color =  MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = user.email,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -60,7 +62,7 @@ fun UserListItem(user: User) {
                 Icon(
                     Icons.Default.Edit,
                     contentDescription = stringResource(R.string.edit),
-                    tint = Color.Gray
+                    tint =  MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -71,7 +73,7 @@ fun UserListItem(user: User) {
                 Icon(
                     Icons.Default.Visibility,
                     contentDescription = stringResource(R.string.view),
-                    tint = Color.Gray
+                    tint =  MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -82,7 +84,7 @@ fun UserListItem(user: User) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Delete",
-                    tint = Color.Red
+                    tint =  MaterialTheme.colorScheme.error
                 )
             }
         }
