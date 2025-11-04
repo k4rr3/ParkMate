@@ -1,7 +1,6 @@
 package com.example.parkmate.auth
 
 
-
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.parkmate.MainActivity
@@ -27,12 +27,12 @@ import com.example.parkmate.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavHostController,
-                onLoginSuccess: () -> Unit) {
+fun LoginScreen(
+    navController: NavHostController,
+    onLoginSuccess: () -> Unit
+) {
     val context = LocalContext.current
-    val viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(context)
-    )
+    val viewModel: AuthViewModel = hiltViewModel() //
     val isLoading by viewModel::isLoading
     val errorMessage by viewModel::errorMessage
     val successMessage by viewModel::successMessage
@@ -126,7 +126,8 @@ fun LoginScreen(navController: NavHostController,
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TextButton(
-                    onClick = { viewModel.sendPasswordResetEmail()
+                    onClick = {
+                        viewModel.sendPasswordResetEmail()
                         shwoSentPasswordResetEmail = true
                     },
                     modifier = Modifier.align(Alignment.End)
@@ -139,16 +140,7 @@ fun LoginScreen(navController: NavHostController,
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    //onClick = { viewModel.loginWithEmail() },
-                    onClick = {
-                        if (viewModel.email == "acb46@alumnes.udl.cat" && viewModel.password == "1234"){
-                            viewModel.clearMessages()
-                            navController.navigate(Screen.MapScreen.route)
-                        }
-                        else{
-                            viewModel.setCredentialsError()
-                        }
-                    },
+                    onClick = { viewModel.loginWithEmail() },
                     enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -164,9 +156,8 @@ fun LoginScreen(navController: NavHostController,
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    onClick = { //viewModel.signInWithGoogle() },
-
-                        navController.navigate(Screen.MapScreen.route)
+                    onClick = {
+                        viewModel.signInWithGoogle()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -201,29 +192,29 @@ fun LoginScreen(navController: NavHostController,
                     Text(stringResource(R.string.don_t_have_account))
                 }
 
-/*                Button(
-                    onClick = {
-                        navController.navigate(Screen.MapScreen.route)
-                    },
-                    enabled = !isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                ) {
-                    Text("BYPASS LOGIN")
-                }
+                /*                Button(
+                                    onClick = {
+                                        navController.navigate(Screen.MapScreen.route)
+                                    },
+                                    enabled = !isLoading,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp)
+                                ) {
+                                    Text("BYPASS LOGIN")
+                                }
 
-                Button(
-                    onClick = {
-                        navController.navigate(Screen.CarDetailsScreen.route)
-                    },
-                    enabled = !isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                ) {
-                    Text("BYPASS LOGIN")
-                }*/
+                                Button(
+                                    onClick = {
+                                        navController.navigate(Screen.CarDetailsScreen.route)
+                                    },
+                                    enabled = !isLoading,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp)
+                                ) {
+                                    Text("BYPASS LOGIN")
+                                }*/
 
                 if (isLoading) {
                     CircularProgressIndicator()
@@ -234,7 +225,7 @@ fun LoginScreen(navController: NavHostController,
 
 
 
-    if (shwoSentPasswordResetEmail && viewModel.isValidEmail()) {
+    if (shwoSentPasswordResetEmail) {
         AlertDialog(
             onDismissRequest = { shwoSentPasswordResetEmail = false },
             title = { Text(stringResource(R.string.reset_password)) },

@@ -75,7 +75,7 @@ fun MenuScreen(navController: NavHostController) {
                     title = stringResource(R.string.car_list),
                     destination = Screen.CarListScreen.route,
 
-                )
+                    )
 
                 MenuButton(
                     navController = navController,
@@ -96,7 +96,7 @@ fun MenuScreen(navController: NavHostController) {
             }
         }
 
-        }
+    }
 }
 @Composable
 fun MenuButton(

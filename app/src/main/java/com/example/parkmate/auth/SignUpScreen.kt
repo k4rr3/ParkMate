@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.parkmate.R
@@ -28,9 +29,7 @@ import com.example.parkmate.ui.components.PasswordTextField
 @Composable
 fun SignUpScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(context)
-    )
+    val viewModel: AuthViewModel = hiltViewModel() //
 
     val state by viewModel::isLoading
     val errorMessage by viewModel::errorMessage
@@ -105,9 +104,9 @@ fun SignUpScreen(navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        if (viewModel.validRegister()){
+                       /* if (viewModel.validRegister()){
                             navController.navigate(Screen.LoginScreen.route)
-                        }
+                        }*/
                     },
                     enabled = !state,
                     modifier = Modifier
@@ -165,7 +164,10 @@ fun SignUpScreen(navController: NavHostController) {
                         },
                         confirmButton = {
                             if (!isEmailVerified) {
-                                TextButton(onClick = { viewModel.checkEmailVerification() }) {
+                                TextButton(
+                                    onClick = {}
+                                    //onClick = { viewModel.checkEmailVerification() }
+                                ) {
                                     Text(stringResource(R.string.check_verification))
                                 }
                             } else {
