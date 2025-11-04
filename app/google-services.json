@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "842440529931-mc3grlbarc5el5vita8gvmfjrgdvgobk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.parkmate",
+            "certificate_hash": "39adad9ad2d26170d6ad8f23b0b4c4582a2f5c05"
+          }
+        },
+        {
           "client_id": "842440529931-dc7e880t9drhuo9ibb4oq8cfnjedqkvj.apps.googleusercontent.com",
           "client_type": 3
         }
