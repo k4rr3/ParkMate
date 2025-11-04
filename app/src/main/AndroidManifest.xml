@@ -18,8 +18,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ParkMate"
         tools:targetApi="34" >
-        <service android:name=".feature_map.presentation.LocationService" android:foregroundServiceType="location"
-            tools:ignore="ForegroundServicePermission" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
