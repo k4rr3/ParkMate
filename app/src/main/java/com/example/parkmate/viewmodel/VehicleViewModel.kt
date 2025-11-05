@@ -22,36 +22,38 @@ class VehicleViewModel @Inject constructor(
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    fun getCurrentUserId(): String? = auth.currentUser?.uid
+
+    fun isUserLoggedIn(): Boolean = auth.currentUser != null
+
     fun loadUserVehicles() {
         viewModelScope.launch {
-            val userId = auth.currentUser?.uid
+            val userId = getCurrentUserId()
             userId?.let {
                 _vehicles.value = firestoreRepository.getUserVehicles(it)
             }
         }
     }
 
-    // Get current user ID directly
-    fun getCurrentUserId(): String? {
-        return auth.currentUser?.uid
-    }
-
-    // Check if user is logged in
-    fun isUserLoggedIn(): Boolean {
-        return auth.currentUser != null
-    }
-
-    // Add other vehicle operations...
     fun addVehicle(vehicle: Vehicle) {
         viewModelScope.launch {
             val userId = getCurrentUserId()
-            userId?.let {
+            userId?.let { uid ->
                 try {
-                    val vehicleId = firestoreRepository.addVehicle(vehicle)
-                    // Reload vehicles after adding
+                    // 1️⃣ Add vehicle to Firestore
+                    val vehicleId = firestoreRepository.addVehicle(vehicle.copy())
+
+                    // 2️⃣ Attach vehicle to the user
+                    val user = firestoreRepository.getUser(uid)
+                    if (user != null) {
+                        val updatedVehicleIds = (user.vehicleID ?: emptyList()) + vehicleId
+                        firestoreRepository.updateUser(uid, mapOf("vehicleID" to updatedVehicleIds))
+                    }
+
+                    // 3️⃣ Refresh vehicles
                     loadUserVehicles()
                 } catch (e: Exception) {
-                    // Handle error
+                    e.printStackTrace()
                 }
             }
         }
@@ -61,22 +63,31 @@ class VehicleViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 firestoreRepository.updateVehicle(vehicleId, updates)
-                // Reload vehicles after updating
                 loadUserVehicles()
             } catch (e: Exception) {
-                // Handle error
+                e.printStackTrace()
             }
         }
     }
 
     fun deleteVehicle(vehicleId: String) {
         viewModelScope.launch {
-            try {
-                firestoreRepository.deleteVehicle(vehicleId)
-                // Reload vehicles after deleting
-                loadUserVehicles()
-            } catch (e: Exception) {
-                // Handle error
+            val userId = getCurrentUserId()
+            userId?.let { uid ->
+                try {
+                    firestoreRepository.deleteVehicle(vehicleId)
+
+                    // Remove the vehicle ID from user doc
+                    val user = firestoreRepository.getUser(uid)
+                    if (user != null) {
+                        val updatedVehicleIds = (user.vehicleID ?: emptyList()).filter { it != vehicleId }
+                        firestoreRepository.updateUser(uid, mapOf("vehicleID" to updatedVehicleIds))
+                    }
+
+                    loadUserVehicles()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }

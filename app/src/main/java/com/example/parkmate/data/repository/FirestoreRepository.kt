@@ -1,13 +1,16 @@
 // data/repository/FirestoreRepository.kt
 package com.example.parkmate.data.repository
 
+import android.util.Log
 import com.example.parkmate.data.models.*
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+
 
 @Singleton
 class FirestoreRepository @Inject constructor() {
@@ -165,7 +168,7 @@ class FirestoreRepository @Inject constructor() {
                     val filteredPoints = points.filter { point ->
                         calculateDistance(
                             centerLat, centerLon,
-                            point.location.__lat__, point.location.__lon__
+                            point.location.latitude, point.location.longitude
                         ) <= radius
                     }
                     onUpdate(filteredPoints)

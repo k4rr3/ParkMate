@@ -1,5 +1,7 @@
 package com.example.parkmate.data.models
 
+import com.google.firebase.firestore.GeoPoint
+
 data class Vehicle(
     val id: String = "",
     val name: String = "",
@@ -19,7 +21,3 @@ data class Maintenance(
     val technicalReview: String = ""
 )
 
-data class GeoPoint(
-    val __lat__: Double = 0.0,
-    val __lon__: Double = 0.0
-)

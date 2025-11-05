@@ -23,63 +23,87 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.parkmate.R
+import com.google.firebase.firestore.GeoPoint
 import com.example.parkmate.mock.*
 import com.example.parkmate.ui.theme.*
+import com.example.parkmate.viewmodel.VehicleViewModel
+import com.example.parkmate.data.models.Vehicle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CarListScreen(navController: NavHostController) {
-    val vehicles = remember { mutableStateListOf<Vehicle>().apply { addAll(sampleVehicles) } }
+fun CarListScreen(
+    navController: NavHostController,
+    viewModel: VehicleViewModel = hiltViewModel()
+) {
+    val vehicles by viewModel.vehicles.collectAsState()
     var showAddCarForm by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadUserVehicles()
+    }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddCarForm = true },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(16.dp)
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_vehicle)
+                    contentDescription = "Add Vehicle"
                 )
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(vehicles) { vehicle ->
-                VehicleCard(navController, vehicle)
+        if (vehicles.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No vehicles yet. Add one!")
             }
-            item { Spacer(modifier = Modifier.height(80.dp)) }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(vehicles) { vehicle ->
+                    VehicleCard(navController, vehicle)
+                }
+            }
         }
 
         if (showAddCarForm) {
             AddCarForm(
                 onDismiss = { showAddCarForm = false },
-                onAddCar = { newCar -> vehicles.add(newCar) }
+                onAddCar = { newVehicle ->
+                    viewModel.addVehicle(newVehicle)
+                }
             )
         }
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp),
-        onClick = { navController.navigate(Screen.CarDetailsScreen.route) }
+        onClick = { navController.navigate(Screen.CarDetailsScreen.route + "/${vehicle.id}") }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -101,55 +125,40 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
 
                 Column {
                     Text(
-                        text = "${vehicle.make} ${vehicle.model}",
+                        text = "${vehicle.brand} ${vehicle.model}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
                     Text(
-                        text = vehicle.licensePlate,
-                        color = MaterialTheme.colorScheme.surface,
+                        text = vehicle.plate,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
-
-                StatusIndicator(status = vehicle.status, detail = vehicle.statusDetail)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Optional info text
             Text(
-                text = vehicle.description,
+                text = "Fuel: ${vehicle.fuelType}  |  Year: ${vehicle.year}",
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val buttonText = when (vehicle.status) {
-                VehicleStatus.EXPIRED -> stringResource(R.string.renew_parking)
-                else -> stringResource(R.string.locate_vehicle)
-            }
-
-            val buttonColor = when (vehicle.status) {
-                VehicleStatus.EXPIRED -> MaterialTheme.colorScheme.error
-                else -> MaterialTheme.colorScheme.primary
-            }
-
-            val buttonIcon = when (vehicle.status) {
-                VehicleStatus.EXPIRED -> Icons.Default.Warning
-                else -> Icons.Default.LocationOn
-            }
-
+            // Action button — maybe “Locate” or “View Details”
             Button(
-                onClick = { /* TODO */ },
+                onClick = { navController.navigate(Screen.CarDetailsScreen.route + "/${vehicle.id}") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = buttonColor)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Icon(imageVector = buttonIcon, contentDescription = null)
+                Icon(imageVector = Icons.Default.LocationOn, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(buttonText, textAlign = TextAlign.Center)
+                Text("View Details", textAlign = TextAlign.Center)
             }
         }
     }
@@ -201,40 +210,39 @@ fun AddCarForm(
     onDismiss: () -> Unit,
     onAddCar: (Vehicle) -> Unit
 ) {
-    var make by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var brand by remember { mutableStateOf("") }
     var model by remember { mutableStateOf("") }
-    var licensePlate by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var year by remember { mutableStateOf("") }
+    var plate by remember { mutableStateOf("") }
+    var fuelType by remember { mutableStateOf("") }
+    var dgtLabel by remember { mutableStateOf("") }
 
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.background
-            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .fillMaxWidth(),
+                modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.create_new_vehicle),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    text = "Add New Vehicle",
+                    style = MaterialTheme.typography.titleMedium
                 )
 
-                CustomTextField(stringResource(R.string.name_label), make) { make = it }
-                CustomTextField(stringResource(R.string.model_label), model) { model = it }
-                CustomTextField(stringResource(R.string.license_plate_label), licensePlate) { licensePlate = it }
-                CustomTextField(stringResource(R.string.description_label), description) { description = it }
+                CustomTextField("Name", name) { name = it }
+                CustomTextField("Brand", brand) { brand = it }
+                CustomTextField("Model", model) { model = it }
+                CustomTextField("Year", year) { year = it }
+                CustomTextField("Plate", plate) { plate = it }
+                CustomTextField("Fuel Type", fuelType) { fuelType = it }
+                CustomTextField("DGT Label", dgtLabel) { dgtLabel = it }
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.End,
@@ -243,37 +251,38 @@ fun AddCarForm(
                     Button(
                         onClick = onDismiss,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = MaterialTheme.colorScheme.onBackground
+                            containerColor = MaterialTheme.colorScheme.surface
                         )
                     ) {
-                        Text(stringResource(R.string.cancel_button))
+                        Text("Cancel")
                     }
 
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     Button(
                         onClick = {
-                            if (make.isNotBlank() && model.isNotBlank()) {
+                            if (name.isNotBlank() && brand.isNotBlank()) {
                                 onAddCar(
                                     Vehicle(
-                                        make = make,
+                                        name = name,
+                                        brand = brand,
                                         model = model,
-                                        licensePlate = licensePlate,
-                                        description = description,
-                                        status = VehicleStatus.PARKED,
-                                        statusDetail = "Newly created"
+                                        year = year,
+                                        plate = plate,
+                                        fuelType = fuelType,
+                                        dgtLabel = dgtLabel,
+                                        parkingLocation =GeoPoint(0.0, 0.0),
+                                        maintenance = null
                                     )
                                 )
                                 onDismiss()
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Text(stringResource(R.string.add_button))
+                        Text("Add")
                     }
                 }
             }

@@ -118,7 +118,8 @@ fun LoginScreen(
                 successMessage?.let {
                     Text(
                         it,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
