@@ -7,20 +7,24 @@ import androidx.compose.material.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.parkmate.auth.LoginScreen
 import com.example.parkmate.auth.SignUpScreen
 import com.example.parkmate.feature_splash_screen.presentation.SplashScreen
 import com.example.parkmate.ui.MapScreen
 import com.example.parkmate.ui.screens.AdminScreen
+import com.example.parkmate.ui.theme.ThemeViewModel
 
 @SuppressLint("MissingPermission")
 @Composable
 fun Navigation(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    themeViewModel: ThemeViewModel
 ) {
     NavHost(
         navController = navController,
@@ -49,8 +53,11 @@ fun Navigation(
             )
         }
 
-        composable(route = Screen.CarDetailsScreen.route) {
-            CarDetailsScreen()
+        composable(
+            route = Screen.CarDetailsScreen.route + "/{vehicleId}"
+        ) { backStackEntry ->
+            val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
+            CarDetailsScreenWrapper(vehicleId = vehicleId)
         }
 
         composable(route = Screen.MenuScreen.route) {
@@ -60,7 +67,7 @@ fun Navigation(
             ProfileScreen()
         }
         composable(route = Screen.SettingsScreen.route) {
-            SettingsScreen()
+            SettingsScreen(themeViewModel = themeViewModel)
         }
         composable(route = Screen.CarListScreen.route){
             CarListScreen(navController = navController)

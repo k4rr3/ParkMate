@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.parkmate.R
@@ -28,9 +30,7 @@ import com.example.parkmate.ui.components.PasswordTextField
 @Composable
 fun SignUpScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(context)
-    )
+    val viewModel: AuthViewModel = hiltViewModel() //
 
     val state by viewModel::isLoading
     val errorMessage by viewModel::errorMessage
@@ -48,7 +48,7 @@ fun SignUpScreen(navController: NavHostController) {
         }
     }
 
-    ParkMateTheme {
+
         Scaffold(
             modifier = Modifier.fillMaxSize()
         ) { paddingValues ->
@@ -71,13 +71,13 @@ fun SignUpScreen(navController: NavHostController) {
                     value = viewModel.email,
                     onValueChange = viewModel::updateEmail,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.email)) },
+                    label = { Text(stringResource(R.string.email),color = MaterialTheme.colorScheme.onBackground) },
                     isError = mailErrorMessage != null,
                     supportingText = {
                         mailErrorMessage?.let {
                             Text(
                                 text = it,
-                                color = Color.Red
+                                color =  MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -89,13 +89,13 @@ fun SignUpScreen(navController: NavHostController) {
                     value = viewModel.password,
                     onValueChange = viewModel::updatePassword,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.password)) },
+                    label = { Text(stringResource(R.string.password),color = MaterialTheme.colorScheme.onBackground) },
                     isError = passwordErrorMessage != null,
                     supportingText = {
                         passwordErrorMessage?.let {
                             Text(
                                 text = it,
-                                color = Color.Red
+                                color =  MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -105,9 +105,9 @@ fun SignUpScreen(navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        if (viewModel.validRegister()){
+                       /* if (viewModel.validRegister()){
                             navController.navigate(Screen.LoginScreen.route)
-                        }
+                        }*/
                     },
                     enabled = !state,
                     modifier = Modifier
@@ -165,7 +165,10 @@ fun SignUpScreen(navController: NavHostController) {
                         },
                         confirmButton = {
                             if (!isEmailVerified) {
-                                TextButton(onClick = { viewModel.checkEmailVerification() }) {
+                                TextButton(
+                                    onClick = {}
+                                    //onClick = { viewModel.checkEmailVerification() }
+                                ) {
                                     Text(stringResource(R.string.check_verification))
                                 }
                             } else {
@@ -189,7 +192,7 @@ fun SignUpScreen(navController: NavHostController) {
                 }
             }
         }
-    }
+    
 }
 
 

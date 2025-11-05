@@ -24,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,14 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.parkmate.ui.theme.Blue
-import com.example.parkmate.ui.theme.Green
-import com.example.parkmate.ui.theme.LightBlue
-import com.example.parkmate.ui.theme.LightGreen
-import com.example.parkmate.ui.theme.LightOrange
-import com.example.parkmate.ui.theme.LightRed
-import com.example.parkmate.ui.theme.Orange
-import com.example.parkmate.ui.theme.Red
+import com.example.parkmate.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +50,7 @@ fun MenuScreen(navController: NavHostController) {
                 .padding(paddingValues)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF8F9FA))
+                .background(MaterialTheme.colorScheme.background)
         ) {
 
             Column(
@@ -81,7 +75,7 @@ fun MenuScreen(navController: NavHostController) {
                     title = stringResource(R.string.car_list),
                     destination = Screen.CarListScreen.route,
 
-                )
+                    )
 
                 MenuButton(
                     navController = navController,
@@ -102,7 +96,7 @@ fun MenuScreen(navController: NavHostController) {
             }
         }
 
-        }
+    }
 }
 @Composable
 fun MenuButton(
@@ -122,7 +116,7 @@ fun MenuButton(
             .clickable{
                 navController.navigate(destination)
             },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(

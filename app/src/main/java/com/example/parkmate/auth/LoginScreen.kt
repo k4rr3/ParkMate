@@ -1,7 +1,6 @@
 package com.example.parkmate.auth
 
 
-
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.parkmate.MainActivity
@@ -27,12 +27,12 @@ import com.example.parkmate.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavHostController,
-                onLoginSuccess: () -> Unit) {
+fun LoginScreen(
+    navController: NavHostController,
+    onLoginSuccess: () -> Unit
+) {
     val context = LocalContext.current
-    val viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(context)
-    )
+    val viewModel: AuthViewModel = hiltViewModel() //
     val isLoading by viewModel::isLoading
     val errorMessage by viewModel::errorMessage
     val successMessage by viewModel::successMessage
@@ -44,8 +44,7 @@ fun LoginScreen(navController: NavHostController,
         if (successMessage == context.getString(R.string.login_successful) ||
             successMessage == context.getString(R.string.sign_in_with_google)
         ) {
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
+            navController.navigate(Screen.MapScreen.route)
             viewModel.clearMessages()
             if (context is MainActivity) {
                 context.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
@@ -53,9 +52,9 @@ fun LoginScreen(navController: NavHostController,
         }
     }
 
-    ParkMateTheme {
+
         Scaffold(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
         ) { paddingValues ->
             Column(
                 modifier = Modifier
@@ -76,13 +75,13 @@ fun LoginScreen(navController: NavHostController,
                     value = viewModel.email,
                     onValueChange = viewModel::updateEmail,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.email)) },
+                    label = { Text(stringResource(R.string.email),color = MaterialTheme.colorScheme.onBackground) },
                     isError = mailErrorMessage != null,
                     supportingText = {
                         mailErrorMessage?.let {
                             Text(
                                 text = it,
-                                color = Color.Red
+                                color =  MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -94,13 +93,13 @@ fun LoginScreen(navController: NavHostController,
                     value = viewModel.password,
                     onValueChange = viewModel::updatePassword,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.password)) },
+                    label = { Text(stringResource(R.string.password),color = MaterialTheme.colorScheme.onBackground) },
                     isError = passwordErrorMessage != null,
                     supportingText = {
                         passwordErrorMessage?.let {
                             Text(
                                 text = it,
-                                color = Color.Red
+                                color =  MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -111,7 +110,7 @@ fun LoginScreen(navController: NavHostController,
                 errorMessage?.let {
                     Text(
                         it,
-                        color = Color.Red, // Use a more noticeable color
+                        color =  MaterialTheme.colorScheme.error, // Use a more noticeable color
                         style = MaterialTheme.typography.bodyMedium, // Increase font size
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -119,14 +118,16 @@ fun LoginScreen(navController: NavHostController,
                 successMessage?.let {
                     Text(
                         it,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TextButton(
-                    onClick = { viewModel.sendPasswordResetEmail()
+                    onClick = {
+                        viewModel.sendPasswordResetEmail()
                         shwoSentPasswordResetEmail = true
                     },
                     modifier = Modifier.align(Alignment.End)
@@ -139,16 +140,7 @@ fun LoginScreen(navController: NavHostController,
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    //onClick = { viewModel.loginWithEmail() },
-                    onClick = {
-                        if (viewModel.email == "acb46@alumnes.udl.cat" && viewModel.password == "1234"){
-                            viewModel.clearMessages()
-                            navController.navigate(Screen.MapScreen.route)
-                        }
-                        else{
-                            viewModel.setCredentialsError()
-                        }
-                    },
+                    onClick = { viewModel.loginWithEmail() },
                     enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -164,9 +156,8 @@ fun LoginScreen(navController: NavHostController,
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    onClick = { //viewModel.signInWithGoogle() },
-
-                        navController.navigate(Screen.MapScreen.route)
+                    onClick = {
+                        viewModel.signInWithGoogle()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -178,9 +169,8 @@ fun LoginScreen(navController: NavHostController,
                         contentDescription = "Google Logo",
                         modifier = Modifier
                             .size(24.dp)
-                            .background(Color.White, shape = CircleShape)
+                            .background(MaterialTheme.colorScheme.background, shape = CircleShape)
                             .padding(0.dp),
-                        tint = Color.Unspecified
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
@@ -201,40 +191,40 @@ fun LoginScreen(navController: NavHostController,
                     Text(stringResource(R.string.don_t_have_account))
                 }
 
-/*                Button(
-                    onClick = {
-                        navController.navigate(Screen.MapScreen.route)
-                    },
-                    enabled = !isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                ) {
-                    Text("BYPASS LOGIN")
-                }
+                /*                Button(
+                                    onClick = {
+                                        navController.navigate(Screen.MapScreen.route)
+                                    },
+                                    enabled = !isLoading,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp)
+                                ) {
+                                    Text("BYPASS LOGIN")
+                                }
 
-                Button(
-                    onClick = {
-                        navController.navigate(Screen.CarDetailsScreen.route)
-                    },
-                    enabled = !isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                ) {
-                    Text("BYPASS LOGIN")
-                }*/
+                                Button(
+                                    onClick = {
+                                        navController.navigate(Screen.CarDetailsScreen.route)
+                                    },
+                                    enabled = !isLoading,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp)
+                                ) {
+                                    Text("BYPASS LOGIN")
+                                }*/
 
                 if (isLoading) {
                     CircularProgressIndicator()
                 }
             }
         }
-    }
 
 
 
-    if (shwoSentPasswordResetEmail && viewModel.isValidEmail()) {
+
+    if (shwoSentPasswordResetEmail) {
         AlertDialog(
             onDismissRequest = { shwoSentPasswordResetEmail = false },
             title = { Text(stringResource(R.string.reset_password)) },

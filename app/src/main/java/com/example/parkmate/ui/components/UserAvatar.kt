@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.example.parkmate.mock.User
+import com.example.parkmate.ui.theme.*
 
 @Composable
 fun UserAvatar(user: User) {
@@ -23,7 +25,7 @@ fun UserAvatar(user: User) {
         modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(Color.LightGray),
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center
     ) {
         // In a real app, you would load the user's avatar image here
@@ -31,7 +33,7 @@ fun UserAvatar(user: User) {
         Icon(
             imageVector = Icons.Default.Person,
             contentDescription = null,
-            tint = Color.White
+            tint =  MaterialTheme.colorScheme.background
         )
     }
 }

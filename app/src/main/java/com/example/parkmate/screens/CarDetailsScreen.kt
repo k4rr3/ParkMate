@@ -48,57 +48,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.parkmate.ui.theme.Blue
+import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.ui.theme.Green
-import com.example.parkmate.ui.theme.LightBlue
 import com.example.parkmate.ui.theme.LightGreen
 import com.example.parkmate.ui.theme.LightOrange
 import com.example.parkmate.ui.theme.LightRed
 import com.example.parkmate.ui.theme.Orange
 import com.example.parkmate.ui.theme.Red
+import com.example.parkmate.R
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CarDetailsScreen() {
-    Scaffold()
-    { paddingValues ->
+fun CarDetailsScreen(vehicle: Vehicle) {
+    Scaffold { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF8F9FA))
         ) {
-            // Car Info Card
-            CarInfoCard()
-            
-            // Car Details
-            CarDetailsCard()
-            
-            // Car Reminders Section
+            CarInfoCard(vehicle)
             CarRemindersSection()
-            
-            // Annual Revision Card
             AnnualRevisionCard()
-            
-            // Car Insurance Card
             CarInsuranceCard()
         }
     }
 }
 
 @Composable
-fun CarInfoCard() {
+fun CarInfoCard(vehicle: Vehicle) {
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
         Row(
             modifier = Modifier
@@ -106,42 +99,41 @@ fun CarInfoCard() {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Car Icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Blue),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.DirectionsCar,
-                    contentDescription = "Car",
-                    tint = Color.White,
+                    contentDescription = stringResource(R.string.car_details_title),
+                    tint = MaterialTheme.colorScheme.background,
                     modifier = Modifier.size(24.dp)
                 )
             }
-            
+
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp)
                     .weight(1f)
             ) {
                 Text(
-                    text = "BMW X3 2021",
+                    text = "${vehicle.brand} ${vehicle.model} ${vehicle.year}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "SUV • Automatic",
-                    color = Color.Gray,
+                    text = stringResource(R.string.fuel_label, vehicle.fuelType, vehicle.dgtLabel),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp
                 )
             }
         }
-        
+
         Divider(modifier = Modifier.padding(horizontal = 16.dp))
-        
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -150,32 +142,35 @@ fun CarInfoCard() {
         ) {
             Column {
                 Text(
-                    text = "LICENSE PLATE",
+                    text = stringResource(R.string.license_plate),
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = "8456 KLM",
+                    text = vehicle.plate,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp
                 )
             }
-            
+
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "PARKING",
+                    text = stringResource(R.string.parking),
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Outlined.DirectionsCar,
-                        contentDescription = "Parking",
-                        tint = Blue,
+                        contentDescription = stringResource(R.string.parking),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "Disabled",
+                        text = if (vehicle.parkingLocation.latitude != 0.0 && vehicle.parkingLocation.longitude != 0.0)
+                            stringResource(R.string.parking_set)
+                        else
+                            stringResource(R.string.parking_disabled),
                         fontWeight = FontWeight.Medium,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(start = 4.dp)
@@ -186,10 +181,7 @@ fun CarInfoCard() {
     }
 }
 
-@Composable
-fun CarDetailsCard() {
-    // This card is not visible in the screenshot but would contain car details
-}
+
 
 @Composable
 fun CarRemindersSection() {
@@ -197,6 +189,8 @@ fun CarRemindersSection() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
+            .background(MaterialTheme.colorScheme.background)
+
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -212,13 +206,13 @@ fun CarRemindersSection() {
             IconButton(
                 onClick = { /* TODO */ },
                 modifier = Modifier
-                    .background(Color.White, shape = RoundedCornerShape(8.dp))
+                    .background( MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
                     .size(32.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add",
-                    tint = Blue,
+                    tint = MaterialTheme.colorScheme.background,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -279,7 +273,7 @@ fun ReminderItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -317,7 +311,7 @@ fun ReminderItem(
                 )
                 Text(
                     text = dueDate,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp
                 )
             }
@@ -346,7 +340,7 @@ fun AnnualRevisionCard() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
@@ -360,7 +354,7 @@ fun AnnualRevisionCard() {
                 Icon(
                     imageVector = Icons.Outlined.CalendarMonth,
                     contentDescription = null,
-                    tint = Blue,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 
@@ -376,7 +370,7 @@ fun AnnualRevisionCard() {
                     )
                     Text(
                         text = "Book your official car inspection",
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 14.sp
                     )
                 }
@@ -392,7 +386,7 @@ fun AnnualRevisionCard() {
                     Text(
                         text = "Next Revision",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "March 2024",
@@ -405,7 +399,7 @@ fun AnnualRevisionCard() {
                     Text(
                         text = "Status",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Pending",
@@ -421,7 +415,7 @@ fun AnnualRevisionCard() {
             Button(
                 onClick = { /* TODO */ },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Edit,
@@ -443,7 +437,7 @@ fun CarInsuranceCard() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
@@ -481,7 +475,7 @@ fun CarInsuranceCard() {
                     )
                     Text(
                         text = "Mapfre Insurance Company",
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 14.sp
                     )
                 }
@@ -497,7 +491,7 @@ fun CarInsuranceCard() {
                     Text(
                         text = "Policy Number",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "POL-2024-X3-001",
@@ -510,7 +504,7 @@ fun CarInsuranceCard() {
                     Text(
                         text = "Coverage",
                         fontSize = 12.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.End
                     )
                     Text(
@@ -531,7 +525,7 @@ fun CarInsuranceCard() {
                     Text(
                         text = "Expires",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Dec 31, 2024",
@@ -544,7 +538,7 @@ fun CarInsuranceCard() {
                     Text(
                         text = "Monthly Premium",
                         fontSize = 12.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.End
                     )
                     Text(

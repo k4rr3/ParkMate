@@ -139,5 +139,33 @@
     <string name="total_users">Total users</string>
     <string name="active_today">Active today</string>
     <string name="add_new_user">Add new user</string>
+    <string name="app_settings">App Settings</string>
+    <string name="English">English</string>
+    <string name="Language">Language</string>
+    <string name="Notifications">Notifications</string>
+    <string name="location_services">Location Services</string>
+    <string name="Always">Always</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="system">System</string>
+    <string name="server_client_id">842440529931-dc7e880t9drhuo9ibb4oq8cfnjedqkvj.apps.googleusercontent.com</string>
+    <string name="add_vehicle">Add Vehicle</string>
+    <string name="renew_parking">Renew Parking</string>
+    <string name="locate_vehicle">Locate Vehicle</string>
+    <string name="parked_status">Parked</string>
+    <string name="driving_status">Driving</string>
+    <string name="expired_status">Expired</string>
+    <string name="add_new_vehicle">Add New Vehicle</string>
+    <string name="Name_label">Name</string>
+    <string name="model_label">Model</string>
+    <string name="license_plate_label">Licence Plate</string>
+    <string name="description_label">Description</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="add_button">Add</string>
+    <string name="create_new_vehicle">Create New Vehicle</string>
+    <string name="car_details_title">Car details</string>
+    <string name="fuel_label">Fuel</string>
+    <string name="license_plate">Licence Plate</string>
+    <string name="parking_set">Parking</string>
+    <string name="parking_disabled">Disabled Parking</string>
 
 </resources>
