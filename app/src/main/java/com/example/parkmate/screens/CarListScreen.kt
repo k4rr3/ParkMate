@@ -103,7 +103,7 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
             .padding(vertical = 8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp),
-        onClick = { navController.navigate(Screen.CarDetailsScreen.route + "/${vehicle.id}") }
+        onClick = { navController.navigate(Screen.CarDetailsScreen.withVehicleId(vehicle.id)) }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
