@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +71,7 @@ fun SignUpScreen(navController: NavHostController) {
                     value = viewModel.email,
                     onValueChange = viewModel::updateEmail,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.email)) },
+                    label = { Text(stringResource(R.string.email),color = MaterialTheme.colorScheme.onBackground) },
                     isError = mailErrorMessage != null,
                     supportingText = {
                         mailErrorMessage?.let {
@@ -88,7 +89,7 @@ fun SignUpScreen(navController: NavHostController) {
                     value = viewModel.password,
                     onValueChange = viewModel::updatePassword,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.password)) },
+                    label = { Text(stringResource(R.string.password),color = MaterialTheme.colorScheme.onBackground) },
                     isError = passwordErrorMessage != null,
                     supportingText = {
                         passwordErrorMessage?.let {

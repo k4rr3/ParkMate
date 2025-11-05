@@ -75,7 +75,7 @@ fun LoginScreen(
                     value = viewModel.email,
                     onValueChange = viewModel::updateEmail,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.email)) },
+                    label = { Text(stringResource(R.string.email),color = MaterialTheme.colorScheme.onBackground) },
                     isError = mailErrorMessage != null,
                     supportingText = {
                         mailErrorMessage?.let {
@@ -93,7 +93,7 @@ fun LoginScreen(
                     value = viewModel.password,
                     onValueChange = viewModel::updatePassword,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.password)) },
+                    label = { Text(stringResource(R.string.password),color = MaterialTheme.colorScheme.onBackground) },
                     isError = passwordErrorMessage != null,
                     supportingText = {
                         passwordErrorMessage?.let {
