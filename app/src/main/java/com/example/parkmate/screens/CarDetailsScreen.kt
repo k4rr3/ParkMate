@@ -48,54 +48,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.ui.theme.Green
 import com.example.parkmate.ui.theme.LightGreen
 import com.example.parkmate.ui.theme.LightOrange
 import com.example.parkmate.ui.theme.LightRed
 import com.example.parkmate.ui.theme.Orange
 import com.example.parkmate.ui.theme.Red
+import com.example.parkmate.R
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CarDetailsScreen() {
-    Scaffold()
-    { paddingValues ->
+fun CarDetailsScreen(vehicle: Vehicle) {
+    Scaffold { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Car Info Card
-            CarInfoCard()
-            
-            // Car Details
-            CarDetailsCard()
-            
-            // Car Reminders Section
+            CarInfoCard(vehicle)
             CarRemindersSection()
-            
-            // Annual Revision Card
             AnnualRevisionCard()
-            
-            // Car Insurance Card
             CarInsuranceCard()
         }
     }
 }
 
 @Composable
-fun CarInfoCard() {
+fun CarInfoCard(vehicle: Vehicle) {
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor =  MaterialTheme.colorScheme.background)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
         Row(
             modifier = Modifier
@@ -103,7 +99,6 @@ fun CarInfoCard() {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Car Icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -113,32 +108,32 @@ fun CarInfoCard() {
             ) {
                 Icon(
                     imageVector = Icons.Default.DirectionsCar,
-                    contentDescription = "Car",
-                    tint =  MaterialTheme.colorScheme.background,
+                    contentDescription = stringResource(R.string.car_details_title),
+                    tint = MaterialTheme.colorScheme.background,
                     modifier = Modifier.size(24.dp)
                 )
             }
-            
+
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp)
                     .weight(1f)
             ) {
                 Text(
-                    text = "BMW X3 2021",
+                    text = "${vehicle.brand} ${vehicle.model} ${vehicle.year}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "SUV • Automatic",
+                    text = stringResource(R.string.fuel_label, vehicle.fuelType, vehicle.dgtLabel),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp
                 )
             }
         }
-        
+
         Divider(modifier = Modifier.padding(horizontal = 16.dp))
-        
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -147,32 +142,35 @@ fun CarInfoCard() {
         ) {
             Column {
                 Text(
-                    text = "LICENSE PLATE",
+                    text = stringResource(R.string.license_plate),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = "8456 KLM",
+                    text = vehicle.plate,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp
                 )
             }
-            
+
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "PARKING",
+                    text = stringResource(R.string.parking),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Outlined.DirectionsCar,
-                        contentDescription = "Parking",
+                        contentDescription = stringResource(R.string.parking),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "Disabled",
+                        text = if (vehicle.parkingLocation.latitude != 0.0 && vehicle.parkingLocation.longitude != 0.0)
+                            stringResource(R.string.parking_set)
+                        else
+                            stringResource(R.string.parking_disabled),
                         fontWeight = FontWeight.Medium,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(start = 4.dp)
@@ -183,10 +181,7 @@ fun CarInfoCard() {
     }
 }
 
-@Composable
-fun CarDetailsCard() {
-    // This card is not visible in the screenshot but would contain car details
-}
+
 
 @Composable
 fun CarRemindersSection() {

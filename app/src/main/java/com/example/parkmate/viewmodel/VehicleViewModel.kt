@@ -6,9 +6,7 @@ import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.data.repository.FirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,6 +33,23 @@ class VehicleViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 🔹 Returns a Flow<Vehicle?> for a specific vehicle ID.
+     * This allows Compose to observe changes reactively.
+     */
+    fun getVehicleById(vehicleId: String): Flow<Vehicle?> = flow {
+        try {
+            val vehicle = firestoreRepository.getVehicle(vehicleId)
+            emit(vehicle)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emit(null)
+        }
+    }
+
+    /**
+     * 🔹 Add a new vehicle to Firestore and link it to the current user.
+     */
     fun addVehicle(vehicle: Vehicle) {
         viewModelScope.launch {
             val userId = getCurrentUserId()
@@ -43,14 +58,14 @@ class VehicleViewModel @Inject constructor(
                     // 1️⃣ Add vehicle to Firestore
                     val vehicleId = firestoreRepository.addVehicle(vehicle.copy())
 
-                    // 2️⃣ Attach vehicle to the user
+                    // 2️⃣ Link vehicle to user
                     val user = firestoreRepository.getUser(uid)
                     if (user != null) {
                         val updatedVehicleIds = (user.vehicleID ?: emptyList()) + vehicleId
                         firestoreRepository.updateUser(uid, mapOf("vehicleID" to updatedVehicleIds))
                     }
 
-                    // 3️⃣ Refresh vehicles
+                    // 3️⃣ Refresh user vehicles
                     loadUserVehicles()
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -59,6 +74,9 @@ class VehicleViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 🔹 Update a vehicle’s Firestore data.
+     */
     fun updateVehicle(vehicleId: String, updates: Map<String, Any>) {
         viewModelScope.launch {
             try {
@@ -70,6 +88,9 @@ class VehicleViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 🔹 Delete a vehicle and remove it from the user’s vehicle list.
+     */
     fun deleteVehicle(vehicleId: String) {
         viewModelScope.launch {
             val userId = getCurrentUserId()
@@ -77,7 +98,6 @@ class VehicleViewModel @Inject constructor(
                 try {
                     firestoreRepository.deleteVehicle(vehicleId)
 
-                    // Remove the vehicle ID from user doc
                     val user = firestoreRepository.getUser(uid)
                     if (user != null) {
                         val updatedVehicleIds = (user.vehicleID ?: emptyList()).filter { it != vehicleId }
