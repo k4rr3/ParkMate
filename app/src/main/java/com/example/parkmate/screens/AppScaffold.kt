@@ -43,6 +43,8 @@ fun  AppScaffold(
         Screen.CarListScreen.route -> stringResource(R.string.car_list_navbar)
         Screen.MapScreen.route -> stringResource(R.string.map_navbar)
         Screen.AdminScreen.route -> stringResource(R.string.admin_navbar)
+        Screen.CarDetailsScreen.route.plus("/{vehicleId}") -> stringResource(R.string.car_details_navbar)
+
         else -> "Add the page in AppScafold file"
     }
     Scaffold(
