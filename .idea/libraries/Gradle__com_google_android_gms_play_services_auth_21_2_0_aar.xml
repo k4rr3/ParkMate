@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.android.gms:play-services-auth:21.2.0@aar" external-system-id="GRADLE">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/c7e5b66cb14d5169dc6fe562c31bb5dc/transformed/play-services-auth-21.2.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/c7e5b66cb14d5169dc6fe562c31bb5dc/transformed/play-services-auth-21.2.0/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/c7e5b66cb14d5169dc6fe562c31bb5dc/transformed/play-services-auth-21.2.0/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/6fdf02699f77d7da08977c0101f4b034/transformed/play-services-auth-21.2.0/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/6fdf02699f77d7da08977c0101f4b034/transformed/play-services-auth-21.2.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/6fdf02699f77d7da08977c0101f4b034/transformed/play-services-auth-21.2.0/res" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.android.gms/play-services-auth/21.2.0/4d8366c13aacb1f920d0203bffe761d497110d0a/play-services-auth-21.2.0-javadoc.jar!/" />

@@ -27,12 +27,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.parkmate.mock.ParkingSpot
 import com.example.parkmate.mock.parkingSpots
@@ -60,86 +58,73 @@ fun MapScreen() {
     }
 
     Scaffold { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it }
-            )
 
-            FilterBar(
-                selectedFilter = selectedFilter,
-                onFilterSelected = { selectedFilter = it }
-            )
 
-    // --- BOTTOM SHEET LOGIC ---
-    // Holds the currently selected spot's data. Null if no spot is selected.
-    var selectedSpot by remember { mutableStateOf<ParkingSpot?>(null) }
-    // Scope for launching coroutines to control the sheet's state.
-    val scope = rememberCoroutineScope()
+            // --- BOTTOM SHEET LOGIC ---
+            // Holds the currently selected spot's data. Null if no spot is selected.
+            var selectedSpot by remember { mutableStateOf<ParkingSpot?>(null) }
+            // Scope for launching coroutines to control the sheet's state.
+            val scope = rememberCoroutineScope()
 
-    // Create state controllers for the Material 2 BottomSheet.
-    // This state has two main values: Collapsed and Expanded.
-    val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
-    val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
+            // Create state controllers for the Material 2 BottomSheet.
+            // This state has two main values: Collapsed and Expanded.
+            val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+            val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
 
-    // This effect runs when the sheet is collapsed (e.g., by the user dragging it down).
-    // It clears the selected spot, which causes the sheet to fully hide.
-    if (sheetState.isCollapsed) {
-        LaunchedEffect(key1 = sheetState.isCollapsed) {
-            selectedSpot = null
-        }
-    }
-
-    // The main layout component that provides a bottom sheet.
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetContent = {
-            // The content of the bottom sheet. It only renders the detail card
-            // if a spot is actually selected, otherwise it's empty.
-            selectedSpot?.let { spot ->
-                ParkingSpotDetailCard(spot = spot)
+            // This effect runs when the sheet is collapsed (e.g., by the user dragging it down).
+            // It clears the selected spot, which causes the sheet to fully hide.
+            if (sheetState.isCollapsed) {
+                LaunchedEffect(key1 = sheetState.isCollapsed) {
+                    selectedSpot = null
+                }
             }
-        },
-        // This is the height of the sheet when it's in the 'Collapsed' state.
-        // It's a non-zero value only when a spot is selected, making it "peek".
-        // It's 0.dp when no spot is selected, making it completely disappear.
-        sheetPeekHeight = if (selectedSpot != null) 120.dp else 0.dp
-    ) {
-        // --- MAIN SCREEN CONTENT (behind the sheet) ---
-        Scaffold { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+
+            // The main layout component that provides a bottom sheet.
+            BottomSheetScaffold(
+                scaffoldState = scaffoldState,
+                sheetContent = {
+                    // The content of the bottom sheet. It only renders the detail card
+                    // if a spot is actually selected, otherwise it's empty.
+                    selectedSpot?.let { spot ->
+                        ParkingSpotDetailCard(spot = spot)
+                    }
+                },
+                // This is the height of the sheet when it's in the 'Collapsed' state.
+                // It's a non-zero value only when a spot is selected, making it "peek".
+                // It's 0.dp when no spot is selected, making it completely disappear.
+                sheetPeekHeight = if (selectedSpot != null) 120.dp else 0.dp
             ) {
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it }
-                )
-                FilterBar(
-                    selectedFilter = selectedFilter,
-                    onFilterSelected = { selectedFilter = it }
-                )
-                MapView(
-                    parkingSpots = spots,
-                    onSpotClick = { spot ->
-                        // When a spot is clicked, update the state...
-                        selectedSpot = spot
-                        // ...and programmatically expand the sheet to its full height.
-                        scope.launch { sheetState.expand() }
-                    },
-                    onMapClick = {
-                        // When the map is clicked, collapse the sheet to its peek height.
-                        scope.launch { sheetState.collapse() }
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+                // --- MAIN SCREEN CONTENT (behind the sheet) ---
+                Scaffold { paddingValues ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                    ) {
+                        SearchBar(
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it }
+                        )
+                        FilterBar(
+                            selectedFilter = selectedFilter,
+                            onFilterSelected = { selectedFilter = it }
+                        )
+                        MapView(
+                            parkingSpots = spots,
+                            onSpotClick = { spot ->
+                                // When a spot is clicked, update the state...
+                                selectedSpot = spot
+                                // ...and programmatically expand the sheet to its full height.
+                                scope.launch { sheetState.expand() }
+                            },
+                            onMapClick = {
+                                // When the map is clicked, collapse the sheet to its peek height.
+                                scope.launch { sheetState.collapse() }
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
             }
         }
     }
-}

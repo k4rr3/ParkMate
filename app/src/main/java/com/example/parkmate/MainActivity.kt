@@ -9,6 +9,7 @@ import com.example.parkmate.core.components.AppScaffold
 import com.example.parkmate.ui.theme.ParkMateTheme
 import com.example.parkmate.ui.theme.ThemeViewModel
 import com.google.android.gms.location.*
+import com.google.android.gms.location.LocationCallback
 import dagger.hilt.android.AndroidEntryPoint
 
 lateinit var locationCallback: LocationCallback

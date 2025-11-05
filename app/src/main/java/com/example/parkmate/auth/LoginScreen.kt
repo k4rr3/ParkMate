@@ -44,8 +44,7 @@ fun LoginScreen(
         if (successMessage == context.getString(R.string.login_successful) ||
             successMessage == context.getString(R.string.sign_in_with_google)
         ) {
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
+            navController.navigate(Screen.MapScreen.route)
             viewModel.clearMessages()
             if (context is MainActivity) {
                 context.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
@@ -171,7 +170,6 @@ fun LoginScreen(
                             .size(24.dp)
                             .background(MaterialTheme.colorScheme.background, shape = CircleShape)
                             .padding(0.dp),
-                        tint = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
