@@ -162,5 +162,10 @@
     <string name="cancel_button">Cancel</string>
     <string name="add_button">Add</string>
     <string name="create_new_vehicle">Create New Vehicle</string>
+    <string name="car_details_title">Car details</string>
+    <string name="fuel_label">Fuel</string>
+    <string name="license_plate">Licence Plate</string>
+    <string name="parking_set">Parking</string>
+    <string name="parking_disabled">Disabled Parking</string>
 
 </resources>
