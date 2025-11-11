@@ -59,7 +59,11 @@ fun  AppScaffold(
                     title = { Text(currentTitle,color = MaterialTheme.colorScheme.onBackground ) },
                     navigationIcon = {
                         IconButton(onClick = {
-                            navController.navigate(Screen.MenuScreen.route)}) {
+                            navController.navigate(Screen.MenuScreen.route){
+                                popUpTo(Screen.MenuScreen.route) {
+                                    inclusive = true
+                                }
+                            }}) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onBackground )
                         }
                     },

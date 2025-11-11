@@ -37,15 +37,15 @@ class VehicleViewModel @Inject constructor(
      * 🔹 Returns a Flow<Vehicle?> for a specific vehicle ID.
      * This allows Compose to observe changes reactively.
      */
-    fun getVehicleById(vehicleId: String): Flow<Vehicle?> = flow {
-        try {
-            val vehicle = firestoreRepository.getVehicle(vehicleId)
-            emit(vehicle)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emit(null)
+    fun getVehicleByIdRealtime(vehicleId: String): StateFlow<Vehicle?> {
+        val state = MutableStateFlow<Vehicle?>(null)
+        firestoreRepository.getVehicleRealtime(vehicleId) { vehicle ->
+            state.value = vehicle
         }
+        return state
     }
+
+
 
     /**
      * 🔹 Add a new vehicle to Firestore and link it to the current user.
@@ -77,7 +77,7 @@ class VehicleViewModel @Inject constructor(
     /**
      * 🔹 Update a vehicle’s Firestore data.
      */
-    fun updateVehicle(vehicleId: String, updates: Map<String, Any>) {
+    fun updateVehicle(vehicleId: String, updates: Map<String, String>) {
         viewModelScope.launch {
             try {
                 firestoreRepository.updateVehicle(vehicleId, updates)

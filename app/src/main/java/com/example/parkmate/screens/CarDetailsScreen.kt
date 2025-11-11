@@ -1,6 +1,7 @@
 package com.example.parkmate.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,8 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.DirectionsCar
@@ -28,10 +28,12 @@ import androidx.compose.material.icons.outlined.LocalGasStation
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.TireRepair
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,9 +42,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +60,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import androidx.navigation.navOptions
 import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.ui.theme.Green
 import com.example.parkmate.ui.theme.LightGreen
@@ -62,124 +72,162 @@ import com.example.parkmate.ui.theme.LightRed
 import com.example.parkmate.ui.theme.Orange
 import com.example.parkmate.ui.theme.Red
 import com.example.parkmate.R
+import com.example.parkmate.viewmodel.VehicleViewModel
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CarDetailsScreen(vehicle: Vehicle) {
+fun CarDetailsScreen(
+    vehicleId: String,
+    navController: NavHostController,
+    viewModel: VehicleViewModel = hiltViewModel()
+
+) {
+    var showEditDialog by remember { mutableStateOf(false) }
+
+    val vehicle by viewModel.getVehicleByIdRealtime(vehicleId).collectAsState()
+
     Scaffold { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            CarInfoCard(vehicle)
-            CarRemindersSection()
-            AnnualRevisionCard()
-            CarInsuranceCard()
+
+        if (vehicle != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(paddingValues)
+            ) {
+                CarInfoCard(vehicle!!) { showEditDialog = true }
+
+                CarRemindersSection()
+                AnnualRevisionCard()
+                CarInsuranceCard()
+                DeleteButton(vehicle!!, navController = navController )
+
+                if (showEditDialog) {
+                    EditCarDialog(
+                        vehicle = vehicle!!,
+                        viewModel = viewModel,
+                        onDismiss = { showEditDialog = false }
+                    )
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = stringResource(R.string.car_not_found))
+            }
         }
     }
 }
 
-@Composable
-fun CarInfoCard(vehicle: Vehicle) {
-    val context = LocalContext.current
 
+
+@Composable
+fun CarInfoCard(vehicle: Vehicle, onEditClick: (Vehicle) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(16.dp)
+            .clickable { onEditClick(vehicle) },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DirectionsCar,
-                    contentDescription = stringResource(R.string.car_details_title),
-                    tint = MaterialTheme.colorScheme.background,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+        Column(modifier = Modifier.padding(16.dp)) {
 
-            Column(
-                modifier = Modifier
-                    .padding(start = 16.dp)
-                    .weight(1f)
-            ) {
-                Text(
-                    text = "${vehicle.brand} ${vehicle.model} ${vehicle.year}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Text(
-                    text = stringResource(R.string.fuel_label, vehicle.fuelType, vehicle.dgtLabel),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 14.sp
-                )
-            }
-        }
-
-        Divider(modifier = Modifier.padding(horizontal = 16.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = stringResource(R.string.license_plate),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    text = vehicle.plate,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = stringResource(R.string.parking),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            // Top row: Icon + Brand / Model / Year
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
-                        imageVector = Icons.Outlined.DirectionsCar,
-                        contentDescription = stringResource(R.string.parking),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
+                        imageVector = Icons.Default.DirectionsCar,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.background,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "${vehicle.brand} ${vehicle.model} ${vehicle.year}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
                     )
                     Text(
-                        text = if (vehicle.parkingLocation.latitude != 0.0 && vehicle.parkingLocation.longitude != 0.0)
-                            stringResource(R.string.parking_set)
-                        else
-                            stringResource(R.string.parking_disabled),
-                        fontWeight = FontWeight.Medium,
+                        text = "Fuel: ${vehicle.fuelType} | DGT: ${vehicle.dgtLabel}",
                         fontSize = 14.sp,
-                        modifier = Modifier.padding(start = 4.dp)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
+                    vehicle.maintenance?.let { maintenance ->
+                        Text(
+                            text = "Maintenance: $maintenance",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Divider()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Bottom row: License plate + Parking
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Plate",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = vehicle.plate,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Parking",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.DirectionsCar,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = if (vehicle.parkingLocation.latitude != 0.0 && vehicle.parkingLocation.longitude != 0.0)
+                                "Set"
+                            else
+                                stringResource(R.string.car_not_parked),
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 
 
 
@@ -590,4 +638,130 @@ fun CarInsuranceCard() {
             }
         }
     }
+}
+
+@Composable
+fun DeleteButton(vehicle: Vehicle, viewModel: VehicleViewModel = hiltViewModel(),navController: NavHostController) {
+    Button(
+        onClick = { viewModel.deleteVehicle(vehicle.id)
+            navController.navigate(Screen.CarListScreen.route) {
+                popUpTo(Screen.CarListScreen.route) {
+                    inclusive = true
+                }
+            }
+
+
+        },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+    ) {
+        Text(
+            text = stringResource(R.string.delete_vehicle),
+            modifier = Modifier.padding(vertical = 8.dp),
+            fontSize = 16.sp
+        )
+    }
+}
+@Composable
+fun EditCarDialog(
+    vehicle: Vehicle,
+    viewModel: VehicleViewModel = hiltViewModel(),
+    onDismiss: () -> Unit
+) {
+    // Local state for editable fields
+    var name by remember { mutableStateOf(vehicle.name ?: "") }
+    var brand by remember { mutableStateOf(vehicle.brand) }
+    var model by remember { mutableStateOf(vehicle.model) }
+    var year by remember { mutableStateOf(vehicle.year) }
+    var plate by remember { mutableStateOf(vehicle.plate) }
+    var fuelType by remember { mutableStateOf(vehicle.fuelType) }
+    var dgtLabel by remember { mutableStateOf(vehicle.dgtLabel) }
+    val context = LocalContext.current
+    var isSaving by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = { if (!isSaving) onDismiss() },
+        title = { Text(stringResource(R.string.edit_vehicle)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
+                CustomTextField("Name", name) { name = it }
+                CustomTextField("Brand", brand) { brand = it }
+                CustomTextField("Model", model) { model = it }
+                CustomTextField("Year", year) { year = it }
+                CustomTextField("Plate", plate) { plate = it }
+                CustomTextField("Fuel Type", fuelType) { fuelType = it }
+                CustomTextField("DGT Label", dgtLabel) { dgtLabel = it }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = !isSaving,
+                onClick = {
+                    // Validate fields
+                    if (brand.isBlank() || model.isBlank() || plate.isBlank()) {
+                        errorMessage = context.getString(R.string.Brand_Model_and_Plate_cannot_be_empty)
+                        return@TextButton
+                    }
+
+                    errorMessage = null
+                    isSaving = true
+
+                    // Prepare map for update
+                    val updates = mapOf(
+                        "name" to name,
+                        "brand" to brand,
+                        "model" to model,
+                        "year" to year,
+                        "plate" to plate,
+                        "fuelType" to fuelType,
+                        "dgtLabel" to dgtLabel
+                    )
+
+                    // Firestore update
+                    viewModel.viewModelScope.launch {
+                        try {
+                            viewModel.updateVehicle(vehicle.id, updates)
+                            // UI will auto-update because of StateFlow / realtime listener
+                            onDismiss()
+                        } catch (e: Exception) {
+                            errorMessage = context.getString(R.string.failed_to_save_changes) + " ${e.message}"
+                        } finally {
+                            isSaving = false
+                        }
+                    }
+                }
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(stringResource(R.string.save))
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                enabled = !isSaving,
+                onClick = onDismiss
+            ) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }

@@ -57,7 +57,7 @@ fun Navigation(
             route = Screen.CarDetailsScreen.route + "/{vehicleId}"
         ) { backStackEntry ->
             val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
-            CarDetailsScreenWrapper(vehicleId = vehicleId)
+            CarDetailsScreenWrapper(vehicleId = vehicleId,navController)
         }
 
         composable(route = Screen.MenuScreen.route) {

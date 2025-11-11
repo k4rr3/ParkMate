@@ -7,6 +7,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -98,6 +100,18 @@ class FirestoreRepository @Inject constructor() {
             null
         }
     }
+    fun getVehicleRealtime(vehicleId: String, onUpdate: (Vehicle?) -> Unit) {
+        vehiclesCollection.document(vehicleId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onUpdate(null)
+                    return@addSnapshotListener
+                }
+                val vehicle = snapshot?.toObject(Vehicle::class.java)?.copy(id = snapshot?.id ?: "")
+                onUpdate(vehicle)
+            }
+    }
+
 
     suspend fun updateVehicle(vehicleId: String, updates: Map<String, Any>): Boolean {
         return try {

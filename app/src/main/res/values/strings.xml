@@ -167,5 +167,12 @@
     <string name="license_plate">Licence Plate</string>
     <string name="parking_set">Parking</string>
     <string name="parking_disabled">Disabled Parking</string>
+    <string name="car_not_found">Car not found</string>
+    <string name="car_not_parked">Car not parked</string>
+    <string name="edit_vehicle">Edit Vehicle</string>
+    <string name="Brand_Model_and_Plate_cannot_be_empty">Brand, Model, and Plate cannot be empty</string>
+    <string name="save">Save</string>
+    <string name="failed_to_save_changes">Failed to save changes:</string>
+    <string name="delete_vehicle">Delete Vehicle</string>
 
 </resources>
