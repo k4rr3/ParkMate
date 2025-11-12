@@ -227,7 +227,7 @@ fun LoginScreen(
     if (shwoSentPasswordResetEmail) {
         AlertDialog(
             onDismissRequest = { shwoSentPasswordResetEmail = false },
-            title = { Text(stringResource(R.string.reset_password)) },
+            title = { Text(stringResource(R.string.reset_password),color = MaterialTheme.colorScheme.onBackground) },
             text = {
                 Text(stringResource(R.string.password_reset_email_sent))
             },

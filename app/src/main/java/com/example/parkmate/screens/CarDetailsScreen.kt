@@ -760,7 +760,7 @@ fun EditCarDialog(
                 enabled = !isSaving,
                 onClick = onDismiss
             ) {
-                Text(stringResource(R.string.cancel))
+                Text(stringResource(R.string.cancel),color = MaterialTheme.colorScheme.onBackground)
             }
         }
     )
