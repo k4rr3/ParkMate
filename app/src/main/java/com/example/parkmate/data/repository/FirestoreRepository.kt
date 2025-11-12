@@ -25,6 +25,49 @@ class FirestoreRepository @Inject constructor() {
     private val zonesCollection = db.collection("zones")
     private val ticketsCollection = db.collection("tickets")
 
+    // 🧩 Admin user operations
+
+    // Get all users (with realtime updates)
+    fun getAllUsersRealtime(onUpdate: (List<User>) -> Unit) {
+        usersCollection.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e("FirestoreRepository", "Error listening for users", error)
+                onUpdate(emptyList())
+                return@addSnapshotListener
+            }
+
+            val users = snapshot?.documents?.mapNotNull { doc ->
+                doc.toObject(User::class.java)?.copy(uid = doc.id)
+            } ?: emptyList()
+
+            onUpdate(users)
+        }
+    }
+
+    // Delete a user document
+    suspend fun deleteUser(uid: String): Boolean {
+        return try {
+            usersCollection.document(uid).delete().await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepository", "Failed to delete user", e)
+            false
+        }
+    }
+
+    // Update a user field (e.g. upgrade to premium)
+    suspend fun updateUserField(uid: String, field: String, value: Any): Boolean {
+        return try {
+            usersCollection.document(uid).update(field, value).await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepository", "Failed to update user field", e)
+            false
+        }
+    }
+
+
+
     // User Operations
     suspend fun createUser(user: User): Boolean {
         return try {

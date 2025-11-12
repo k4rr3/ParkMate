@@ -10,7 +10,8 @@ data class User(
     val premium: Boolean = false,
     val vehicleID: List<String> = emptyList(),
     val PaymentMethod: Map<String, PaymentCard> = emptyMap(),
-    val createdAt: Timestamp = Timestamp.now()
+    val createdAt: Timestamp = Timestamp.now(),
+    val admin: Boolean = false
 )
 
 data class PaymentCard(

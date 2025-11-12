@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.parkmate.R
-import com.example.parkmate.mock.sampleUsers
+
 import com.example.parkmate.ui.components.UserListItem
 import com.example.parkmate.ui.theme.Green
 import com.example.parkmate.ui.theme.LightGray
@@ -121,13 +121,7 @@ fun AdminScreen() {
 
         // User List
         Column(modifier = Modifier.fillMaxWidth()) {
-            sampleUsers.forEach { user ->
-                UserListItem(user = user)
-                Divider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = LightGray
-                )
-            }
+
         }
     }
 }

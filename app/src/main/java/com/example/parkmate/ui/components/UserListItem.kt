@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -15,77 +17,42 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.parkmate.R
-import com.example.parkmate.mock.User
+import com.example.parkmate.data.models.User
+
 
 @Composable
-fun UserListItem(user: User) {
+fun UserListItem(
+    user: User,
+    onDelete: () -> Unit,
+    onTogglePremium: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar
-        UserAvatar(user = user)
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // User info
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = user.name,
-                style = MaterialTheme.typography.bodyLarge,
-                color =  MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = user.email,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+        Column {
+            Text(user.name, fontWeight = FontWeight.Bold)
+            Text(user.email, fontSize = 12.sp, color = Color.Gray)
+            Text(if (user.premium) "Premium User" else "Standard User", fontSize = 12.sp)
         }
 
-        // Status badge
-        StatusBadge(status = user.status)
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Action buttons
         Row {
-            IconButton(
-                onClick = { /* Edit action */ },
-                modifier = Modifier.size(32.dp)
-            ) {
+            IconButton(onClick = onTogglePremium) {
                 Icon(
-                    Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.edit),
-                    tint =  MaterialTheme.colorScheme.onBackground
+                    if (user.premium) Icons.Default.Star else Icons.Default.StarBorder,
+                    contentDescription = "Toggle Premium"
                 )
             }
 
-            IconButton(
-                onClick = { /* View action */ },
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    Icons.Default.Visibility,
-                    contentDescription = stringResource(R.string.view),
-                    tint =  MaterialTheme.colorScheme.onBackground
-                )
-            }
-
-            IconButton(
-                onClick = { /* Delete action */ },
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint =  MaterialTheme.colorScheme.error
-                )
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete User", tint = Color.Red)
             }
         }
     }
