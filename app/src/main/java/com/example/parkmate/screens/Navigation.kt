@@ -67,7 +67,7 @@ fun Navigation(
             ProfileScreen()
         }
         composable(route = Screen.SettingsScreen.route) {
-            SettingsScreen(themeViewModel = themeViewModel)
+            SettingsScreen(themeViewModel = themeViewModel,navController=navController)
         }
         composable(route = Screen.CarListScreen.route){
             CarListScreen(navController = navController)
@@ -78,6 +78,13 @@ fun Navigation(
         composable(route= Screen.AdminScreen.route){
             AdminScreen()
         }
+        composable(route= Screen.AboutUsScreen.route){
+            AboutUsScreen()
+        }
+        composable(route= Screen.TermsAndConditionsScreen.route){
+            TermsAndConditionsScreen()
+        }
+
         /* composable(route = Screen.SavedCarSpotsScreen.route) {
              SavedCarSpotsScreen(navController = navController)
          }

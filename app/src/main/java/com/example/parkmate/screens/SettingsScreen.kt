@@ -1,6 +1,7 @@
 package com.example.parkmate.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -18,13 +19,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.parkmate.ui.theme.*
 import com.example.parkmate.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    themeViewModel: ThemeViewModel
+    themeViewModel: ThemeViewModel,
+    navController: NavHostController
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     var locationEnabled by remember { mutableStateOf(true) }
@@ -82,20 +85,20 @@ fun SettingsScreen(
             SettingsCard {
                 SettingsItem(
                     icon = Icons.Default.Help,
-                    title = "Help & Support",
-                    subtitle = "FAQ, Contact us",
+                    title = stringResource(R.string.terms_and_conditions),
+                    subtitle = "",
                     hasArrow = true,
-                    onClick = { /* Handle click */ }
+                    onClick = { navController.navigate(Screen.TermsAndConditionsScreen.route)}
                 )
 
                 Divider(modifier = Modifier.padding(start = 72.dp))
 
                 SettingsItem(
                     icon = Icons.Default.Info,
-                    title = "About",
+                    title = stringResource(R.string.about_us),
                     subtitle = "Version 2.4.1",
                     hasArrow = true,
-                    onClick = { /* Handle click */ }
+                    onClick = { navController.navigate(Screen.AboutUsScreen.route)}
                 )
 
             }
@@ -135,15 +138,17 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 fun SettingsItem(
     icon: ImageVector,
     title: String,
-    subtitle: String?,
+    subtitle: String? = null,
     hasArrow: Boolean = false,
     onClick: () -> Unit = {},
-    titleColor: Color =  MaterialTheme.colorScheme.onBackground
+    titleColor: Color = MaterialTheme.colorScheme.onBackground
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -174,7 +179,7 @@ fun SettingsItem(
                 Text(
                     text = subtitle,
                     fontSize = 12.sp,
-                    color =  MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -183,7 +188,7 @@ fun SettingsItem(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Arrow",
-                tint =  MaterialTheme.colorScheme.surface,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
         }
