@@ -81,26 +81,6 @@ fun SettingsScreen(
 
             SettingsCard {
                 SettingsItem(
-                    icon = Icons.Default.Shield,
-                    title = "Data Sharing",
-                    subtitle = "Limited sharing",
-                    hasArrow = true,
-                    onClick = { /* Handle click */ }
-                )
-
-                Divider(modifier = Modifier.padding(start = 72.dp))
-
-                SettingsItem(
-                    icon = Icons.Default.Security,
-                    title = "App Permissions",
-                    subtitle = "Manage access",
-                    hasArrow = true,
-                    onClick = { /* Handle click */ }
-                )
-
-                Divider(modifier = Modifier.padding(start = 72.dp))
-
-                SettingsItem(
                     icon = Icons.Default.Help,
                     title = "Help & Support",
                     subtitle = "FAQ, Contact us",
