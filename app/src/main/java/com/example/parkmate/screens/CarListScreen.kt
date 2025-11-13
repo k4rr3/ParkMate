@@ -4,33 +4,36 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.example.parkmate.R
-import com.google.firebase.firestore.GeoPoint
-import com.example.parkmate.mock.*
-import com.example.parkmate.ui.theme.*
-import com.example.parkmate.viewmodel.VehicleViewModel
 import com.example.parkmate.data.models.Vehicle
+import com.example.parkmate.ui.theme.CarListIcon
+import com.example.parkmate.viewmodel.VehicleViewModel
+import com.google.firebase.firestore.GeoPoint
+import androidx.compose.foundation.text.KeyboardOptions
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +77,8 @@ fun CarListScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
             ) {
                 items(vehicles) { vehicle ->
                     VehicleCard(navController, vehicle)
@@ -84,23 +88,22 @@ fun CarListScreen(
 
         if (showAddCarForm) {
             AddCarForm(
-                onDismiss = { showAddCarForm = false },
-                onAddCar = { newVehicle ->
-                    viewModel.addVehicle(newVehicle)
-                }
+                onDismiss = {
+                    showAddCarForm = false
+                    viewModel.clearForm() // Clear form state when dialog is dismissed
+                },
+                viewModel = viewModel // Pass the existing ViewModel instance
             )
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp),
         onClick = { navController.navigate(Screen.CarDetailsScreen.withVehicleId(vehicle.id)) }
@@ -120,12 +123,10 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
                         tint = MaterialTheme.colorScheme.background
                     )
                 }
-
                 Spacer(modifier = Modifier.width(16.dp))
-
                 Column {
                     Text(
-                        text = "${vehicle.brand} ${vehicle.model}",
+                        text = vehicle.name,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -135,24 +136,16 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
                         fontSize = 14.sp
                     )
                 }
-
-                Spacer(modifier = Modifier.weight(1f))
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Optional info text
             Text(
-                text = "Fuel: ${vehicle.fuelType}  |  Year: ${vehicle.year}",
+                text = "${vehicle.brand} ${vehicle.model}  ·  ${vehicle.year}",
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Action button — maybe “Locate” or “View Details”
             Button(
-                onClick = { navController.navigate(Screen.CarDetailsScreen.route + "/${vehicle.id}") },
+                onClick = { navController.navigate(Screen.CarDetailsScreen.withVehicleId(vehicle.id)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -165,58 +158,11 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
 }
 
 @Composable
-fun StatusIndicator(status: VehicleStatus, detail: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        val color = when (status) {
-            VehicleStatus.PARKED -> Green
-            VehicleStatus.DRIVING -> MaterialTheme.colorScheme.primary
-            VehicleStatus.EXPIRED -> MaterialTheme.colorScheme.error
-        }
-
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(color)
-        )
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        val statusText = when (status) {
-            VehicleStatus.PARKED -> stringResource(R.string.parked_status)
-            VehicleStatus.DRIVING -> stringResource(R.string.driving_status)
-            VehicleStatus.EXPIRED -> stringResource(R.string.expired_status)
-        }
-
-        Text(
-            text = statusText,
-            color = color,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        Text(
-            text = detail,
-            color = MaterialTheme.colorScheme.surface,
-            fontSize = 12.sp
-        )
-    }
-}
-
-@Composable
 fun AddCarForm(
     onDismiss: () -> Unit,
-    onAddCar: (Vehicle) -> Unit
+    viewModel: VehicleViewModel
 ) {
-    var name by remember { mutableStateOf("") }
-    var brand by remember { mutableStateOf("") }
-    var model by remember { mutableStateOf("") }
-    var year by remember { mutableStateOf("") }
-    var plate by remember { mutableStateOf("") }
-    var fuelType by remember { mutableStateOf("") }
-    var dgtLabel by remember { mutableStateOf("") }
+    val formState by viewModel.formState.collectAsState()
 
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -226,61 +172,85 @@ fun AddCarForm(
                 .padding(16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
                     text = "Add New Vehicle",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleLarge
                 )
 
-                CustomTextField("Name", name) { name = it }
-                CustomTextField("Brand", brand) { brand = it }
-                CustomTextField("Model", model) { model = it }
-                CustomTextField("Year", year) { year = it }
-                CustomTextField("Plate", plate) { plate = it }
-                CustomTextField("Fuel Type", fuelType) { fuelType = it }
-                CustomTextField("DGT Label", dgtLabel) { dgtLabel = it }
+                ValidatedTextField(
+                    label = "Name",
+                    value = formState.name,
+                    onValueChange = viewModel::onNameChange,
+                    errorMessage = formState.nameError
+                )
+                ValidatedTextField(
+                    label = "Brand",
+                    value = formState.brand,
+                    onValueChange = viewModel::onBrandChange,
+                    errorMessage = formState.brandError
+                )
+                ValidatedTextField(
+                    label = "Model",
+                    value = formState.model,
+                    onValueChange = viewModel::onModelChange,
+                    errorMessage = formState.modelError
+                )
+                ValidatedTextField(
+                    label = "Year",
+                    value = formState.year,
+                    onValueChange = viewModel::onYearChange,
+                    errorMessage = formState.yearError,
+                    keyboardType = KeyboardType.Number
+                )
+                ValidatedTextField(
+                    label = "Plate",
+                    value = formState.plate,
+                    onValueChange = viewModel::onPlateChange,
+                    errorMessage = formState.plateError
+                )
+                ValidatedTextField("Fuel Type", formState.fuelType, viewModel::onFuelTypeChange)
 
-                Spacer(modifier = Modifier.height(12.dp))
+                ValidatedTextField(
+                    "DGT Label",
+                    formState.dgtLabel,
+                    viewModel::onDgtLabelChange,
+
+                    // ADD THIS PARAMETER
+                    errorMessage = formState.dgtLabelError
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
-                    ) {
+                    TextButton(onClick = onDismiss) {
                         Text("Cancel")
                     }
-
                     Spacer(modifier = Modifier.width(8.dp))
-
                     Button(
                         onClick = {
-                            if (name.isNotBlank() && brand.isNotBlank()) {
-                                onAddCar(
-                                    Vehicle(
-                                        name = name,
-                                        brand = brand,
-                                        model = model,
-                                        year = year,
-                                        plate = plate,
-                                        fuelType = fuelType,
-                                        dgtLabel = dgtLabel,
-                                        parkingLocation =GeoPoint(0.0, 0.0),
-                                        maintenance = null
-                                    )
-                                )
-                                onDismiss()
-                            }
+                            val newVehicle = Vehicle(
+                                name = formState.name,
+                                brand = formState.brand,
+                                model = formState.model,
+                                year = formState.year,
+                                plate = formState.plate,
+                                fuelType = formState.fuelType,
+                                dgtLabel = formState.dgtLabel,
+                                parkingLocation = GeoPoint(0.0, 0.0),
+                                maintenance = null
+                            )
+                            viewModel.addVehicle(newVehicle)
+                            onDismiss()
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                        enabled = formState.isFormValid
                     ) {
                         Text("Add")
                     }
@@ -290,20 +260,27 @@ fun AddCarForm(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// Reusable validated text field to avoid repeating code
 @Composable
-fun CustomTextField(label: String, value: String, onValueChange: (String) -> Unit) {
+fun ValidatedTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    errorMessage: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = MaterialTheme.colorScheme.onBackground) },
+        label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
-        textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.surface,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            containerColor = MaterialTheme.colorScheme.background
-        )
+        singleLine = true,
+        isError = errorMessage != null,
+        supportingText = {
+            if (errorMessage != null) {
+                Text(errorMessage, color = MaterialTheme.colorScheme.error)
+            }
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
     )
 }
