@@ -27,6 +27,7 @@ import com.example.parkmate.R
 import com.example.parkmate.screens.Screen
 import com.example.parkmate.ui.theme.ParkMateTheme
 import com.example.parkmate.ui.components.*
+import com.example.parkmate.ui.theme.DarkBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,10 +165,9 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,        // fondo blanco
+                        containerColor = DarkBlue,
                         contentColor = Color.Black
                     ),
-                    shape = RoundedCornerShape(4.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Image(
