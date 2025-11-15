@@ -16,7 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.example.parkmate.mock.User
+import com.example.parkmate.data.models.User
 import com.example.parkmate.ui.theme.*
 
 @Composable

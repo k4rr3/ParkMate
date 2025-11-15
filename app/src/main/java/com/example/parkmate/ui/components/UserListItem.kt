@@ -27,33 +27,34 @@ import com.example.parkmate.data.models.User
 @Composable
 fun UserListItem(
     user: User,
-    onDelete: () -> Unit,
-    onTogglePremium: () -> Unit
+    onDelete: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(user.name, fontWeight = FontWeight.Bold)
-            Text(user.email, fontSize = 12.sp, color = Color.Gray)
-            Text(if (user.premium) "Premium User" else "Standard User", fontSize = 12.sp)
+            Text(
+                text = user.name.ifBlank { stringResource(R.string.unknown_user) },
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = user.email,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
-        Row {
-            IconButton(onClick = onTogglePremium) {
-                Icon(
-                    if (user.premium) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = "Toggle Premium"
-                )
-            }
-
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete User", tint = Color.Red)
-            }
+        IconButton(onClick = onDelete) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = stringResource(R.string.delete_user),
+                tint = MaterialTheme.colorScheme.error
+            )
         }
     }
 }
