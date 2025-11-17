@@ -10,7 +10,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -21,7 +20,8 @@ import com.example.parkmate.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun  AppScaffold(
-    themeViewModel: ThemeViewModel
+    themeViewModel: ThemeViewModel,
+    languageViewModel: LanguageViewModel
 ) {
     val navController = rememberNavController()
     val scaffoldState = rememberScaffoldState()
@@ -85,6 +85,6 @@ fun  AppScaffold(
 
         },
     ) { innerPadding ->
-        Navigation(navController = navController, innerPadding = innerPadding, snackbarHostState = snackbarHost.snackbarHostState, themeViewModel = themeViewModel)
+        Navigation(navController = navController, innerPadding = innerPadding, snackbarHostState = snackbarHost.snackbarHostState,languageViewModel, themeViewModel = themeViewModel)
     }
 }
