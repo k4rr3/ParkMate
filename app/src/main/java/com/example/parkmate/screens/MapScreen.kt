@@ -1,101 +1,117 @@
 package com.example.parkmate.ui
 
-import android.Manifest // <-- Asegúrate de que este import está presente
+import android.Manifest
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.parkmate.mock.ParkingSpot
-import com.example.parkmate.mock.parkingSpots
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.parkmate.data.models.Zone
 import com.example.parkmate.screens.rememberPermissionManager
-import com.example.parkmate.ui.components.FilterBar
 import com.example.parkmate.ui.components.MapView
-import com.example.parkmate.ui.components.ParkingSpotDetailCard
 import com.example.parkmate.ui.components.SearchBar
-import com.example.parkmate.utils.rememberDeviceLocation
+import com.example.parkmate.ui.components.ZoneDetailCard
+import com.example.parkmate.viewmodel.ZoneViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun MapScreen() {
-    val locationPermissionManager = rememberPermissionManager(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+fun MapScreen(
+    zoneViewModel: ZoneViewModel = hiltViewModel()
+) {
+    val allZonesFromFirebase by zoneViewModel.zones.collectAsState()
+    val isLoading by zoneViewModel.isLoading.collectAsState()
 
+    // --- LOG PARA VER SI LA UI RECIBE LOS DATOS ---
+    Log.d("DEBUG_MAPSCREEN", "MapScreen redibujado con: ${allZonesFromFirebase.size} zonas.")
+    // ------------------------------------------
+
+    val locationPermissionManager = rememberPermissionManager(permission = Manifest.permission.ACCESS_FINE_LOCATION)
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("Parking") }
-    val spots = if (searchQuery.isEmpty()) {
-        parkingSpots
-    } else {
-        parkingSpots.filter {
-            it.name.contains(searchQuery, ignoreCase = true)
+    var showParking by remember { mutableStateOf(true) }
+    var showGasStations by remember { mutableStateOf(false) }
+
+    val filteredZones = remember(allZonesFromFirebase, searchQuery) {
+        if (searchQuery.isBlank()) {
+            allZonesFromFirebase
+        } else {
+            allZonesFromFirebase.filter { zone ->
+                zone.name.contains(searchQuery, ignoreCase = true) ||
+                        zone.tariff.contains(searchQuery, ignoreCase = true)
+            }
         }
     }
 
-
-    var selectedSpot by remember { mutableStateOf<ParkingSpot?>(null) }
+    var selectedZone by remember { mutableStateOf<Zone?>(null) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
 
-    if (sheetState.isCollapsed) {
-        LaunchedEffect(key1 = sheetState.isCollapsed) {
-            selectedSpot = null
+    LaunchedEffect(sheetState.isCollapsed) {
+        if (sheetState.isCollapsed) {
+            selectedZone = null
         }
     }
 
-
     LaunchedEffect(Unit) {
-        if (!locationPermissionManager.hasPermission) {
-            locationPermissionManager.requestPermission()
-        }
+        locationPermissionManager.requestPermission()
     }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContent = {
-            selectedSpot?.let { spot ->
-                ParkingSpotDetailCard(spot = spot)
+            selectedZone?.let { zone ->
+                ZoneDetailCard(zone = zone)
             }
         },
-        sheetPeekHeight = if (selectedSpot != null) 120.dp else 0.dp
-    ) {
+        sheetPeekHeight = if (selectedZone != null) 150.dp else 0.dp,
+        sheetGesturesEnabled = selectedZone != null
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            MapView(
+                zones = if (showParking) filteredZones else emptyList(),
+                hasLocationPermission = locationPermissionManager.hasPermission,
+                onZoneClick = { zone ->
+                    selectedZone = zone
+                    scope.launch { sheetState.expand() }
+                },
+                onMapClick = {
+                    scope.launch { sheetState.collapse() }
+                }
+            )
 
-        Scaffold { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
                 SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it }
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { newQuery -> searchQuery = newQuery },
+                    showParking = showParking,
+                    onParkingToggle = { showParking = !showParking },
+                    showGasStations = showGasStations,
+                    onGasStationsToggle = { showGasStations = !showGasStations }
                 )
-                FilterBar(
-                    selectedFilter = selectedFilter,
-                    onFilterSelected = { selectedFilter = it }
-                )
-                MapView(
-                    parkingSpots = spots,
+            }
 
-                    hasLocationPermission = locationPermissionManager.hasPermission,
-                    onSpotClick = { spot ->
-                        selectedSpot = spot
-                        scope.launch { sheetState.expand() }
-                    },
-                    onMapClick = {
-                        scope.launch { sheetState.collapse() }
-                    },
-                    modifier = Modifier.weight(1f)
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
         }
