@@ -105,7 +105,9 @@ fun SignUpScreen(navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        viewModel.signUpWithEmail()
+                       /* if (viewModel.validRegister()){
+                            navController.navigate(Screen.LoginScreen.route)
+                        }*/
                     },
                     enabled = !state,
                     modifier = Modifier
@@ -164,7 +166,8 @@ fun SignUpScreen(navController: NavHostController) {
                         confirmButton = {
                             if (!isEmailVerified) {
                                 TextButton(
-                                    onClick = { viewModel.checkEmailVerification() }
+                                    onClick = {}
+                                    //onClick = { viewModel.checkEmailVerification() }
                                 ) {
                                     Text(stringResource(R.string.check_verification))
                                 }
