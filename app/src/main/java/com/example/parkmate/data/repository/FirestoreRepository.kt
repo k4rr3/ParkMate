@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.parkmate.data.models.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.channels.awaitClose
@@ -64,6 +65,18 @@ class FirestoreRepository @Inject constructor() {
             Log.e("FirestoreRepository", "Failed to update user field", e)
             false
         }
+    }
+    fun listenUser(uid: String, onUserChanged: (User?) -> Unit): ListenerRegistration {
+        return usersCollection
+            .document(uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onUserChanged(null)
+                    return@addSnapshotListener
+                }
+                val user = snapshot?.toObject(User::class.java)
+                onUserChanged(user)
+            }
     }
 
 
