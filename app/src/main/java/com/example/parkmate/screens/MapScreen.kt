@@ -1,101 +1,171 @@
 package com.example.parkmate.ui
 
-import android.Manifest // <-- Asegúrate de que este import está presente
+import android.Manifest
+import android.annotation.SuppressLint // Importa la anotación
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.parkmate.mock.ParkingSpot
-import com.example.parkmate.mock.parkingSpots
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.parkmate.data.models.Zone
 import com.example.parkmate.screens.rememberPermissionManager
-import com.example.parkmate.ui.components.FilterBar
 import com.example.parkmate.ui.components.MapView
-import com.example.parkmate.ui.components.ParkingSpotDetailCard
 import com.example.parkmate.ui.components.SearchBar
-import com.example.parkmate.utils.rememberDeviceLocation
+import com.example.parkmate.ui.components.ZoneDetailCard
+import com.example.parkmate.utils.calculateCentroid
+import com.example.parkmate.viewmodel.ZoneViewModel
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@SuppressLint("MissingPermission") // <-- LA ANOTACIÓN SE MUEVE AQUÍ, A NIVEL DE FUNCIÓN
 @Composable
-fun MapScreen() {
-    val locationPermissionManager = rememberPermissionManager(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+fun MapScreen(
+    zoneViewModel: ZoneViewModel = hiltViewModel()
+) {
+    val allZonesFromFirebase by zoneViewModel.zones.collectAsState()
+    val isLoading by zoneViewModel.isLoading.collectAsState()
 
+    // --- ESTADO PARA LA CÁMARA ---
+    val cameraPositionState = rememberCameraPositionState {
+        // Posición inicial por defecto (Lleida)
+        position = CameraPosition.fromLatLngZoom(LatLng(41.6168, 0.6226), 12f)
+    }
+
+    // --- LÓGICA DE UBICACIÓN DEL USUARIO ---
+    val context = LocalContext.current
+    val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var locationHasBeenCentered by remember { mutableStateOf(false) } // Flag para centrar solo una vez
+
+    // --- ESTADO PARA LA BÚSQUEDA Y SUGERENCIAS ---
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("Parking") }
-    val spots = if (searchQuery.isEmpty()) {
-        parkingSpots
-    } else {
-        parkingSpots.filter {
-            it.name.contains(searchQuery, ignoreCase = true)
+    var searchSuggestions by remember { mutableStateOf<List<Zone>>(emptyList()) }
+    var showSuggestions by remember { mutableStateOf(false) }
+
+    // --- LÓGICA DE BÚSQUEDA ---
+    LaunchedEffect(searchQuery, allZonesFromFirebase) {
+        if (searchQuery.isNotBlank()) {
+            searchSuggestions = allZonesFromFirebase.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
+            }
+            showSuggestions = true
+        } else {
+            searchSuggestions = emptyList()
+            showSuggestions = false
         }
     }
 
-
-    var selectedSpot by remember { mutableStateOf<ParkingSpot?>(null) }
+    // --- ESTADO RESTANTE (BOTTOMSHEET, FILTROS, ETC.) ---
+    val locationPermissionManager = rememberPermissionManager(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+    var showParking by remember { mutableStateOf(false) }
+    var showGasStations by remember { mutableStateOf(false) }
+    var selectedZone by remember { mutableStateOf<Zone?>(null) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
 
-    if (sheetState.isCollapsed) {
-        LaunchedEffect(key1 = sheetState.isCollapsed) {
-            selectedSpot = null
-        }
+    LaunchedEffect(sheetState.isCollapsed) {
+        if (sheetState.isCollapsed) selectedZone = null
     }
 
-
+    // --- LÓGICA DE INICIALIZACIÓN ---
     LaunchedEffect(Unit) {
-        if (!locationPermissionManager.hasPermission) {
-            locationPermissionManager.requestPermission()
+        locationPermissionManager.requestPermission()
+    }
+
+    // --- EFECTO PARA CENTRAR EL MAPA EN LA UBICACIÓN DEL USUARIO ---
+    // Ya no necesita la anotación aquí
+    LaunchedEffect(locationPermissionManager.hasPermission) {
+        if (locationPermissionManager.hasPermission && !locationHasBeenCentered) {
+            try {
+                // Obtenemos la última ubicación conocida
+                val location = fusedLocationProviderClient.lastLocation.await()
+                if (location != null) {
+                    val userLatLng = LatLng(location.latitude, location.longitude)
+                    // Animamos la cámara a la ubicación del usuario con un zoom más cercano
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(userLatLng, 15f), // Zoom más ampliado
+                        1000 // Duración de la animación en ms
+                    )
+                    locationHasBeenCentered = true // Marcamos que ya hemos centrado el mapa
+                }
+            } catch (e: Exception) {
+                // Manejar excepción si no se puede obtener la ubicación
+            }
         }
     }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
-        sheetContent = {
-            selectedSpot?.let { spot ->
-                ParkingSpotDetailCard(spot = spot)
-            }
-        },
-        sheetPeekHeight = if (selectedSpot != null) 120.dp else 0.dp
-    ) {
+        sheetContent = { selectedZone?.let { ZoneDetailCard(zone = it) } },
+        sheetPeekHeight = if (selectedZone != null) 150.dp else 0.dp,
+        sheetGesturesEnabled = selectedZone != null
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            MapView(
+                cameraPositionState = cameraPositionState,
+                zones = if (showParking) allZonesFromFirebase else emptyList(),
+                hasLocationPermission = locationPermissionManager.hasPermission,
+                onZoneClick = { zone ->
+                    selectedZone = zone
+                    scope.launch { sheetState.expand() }
+                },
+                onMapClick = {
+                    scope.launch { sheetState.collapse() }
+                    showSuggestions = false
+                }
+            )
 
-        Scaffold { paddingValues ->
+            // --- UI SUPERPUESTA CON BÚSQUEDA Y SUGERENCIAS ---
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
                 SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it }
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { newQuery -> searchQuery = newQuery },
+                    showParking = showParking,
+                    onParkingToggle = { showParking = !showParking },
+                    showGasStations = showGasStations,
+                    onGasStationsToggle = { showGasStations = !showGasStations },
+                    showSuggestions = showSuggestions,
+                    suggestions = searchSuggestions,
+                    onSuggestionClick = { zone ->
+                        scope.launch {
+                            val centroid = calculateCentroid(zone.vector)
+                            cameraPositionState.animate(
+                                CameraUpdateFactory.newLatLngZoom(centroid, 17f)
+                            )
+                        }
+                        searchQuery = zone.name
+                        showSuggestions = false
+                    }
                 )
-                FilterBar(
-                    selectedFilter = selectedFilter,
-                    onFilterSelected = { selectedFilter = it }
-                )
-                MapView(
-                    parkingSpots = spots,
+            }
 
-                    hasLocationPermission = locationPermissionManager.hasPermission,
-                    onSpotClick = { spot ->
-                        selectedSpot = spot
-                        scope.launch { sheetState.expand() }
-                    },
-                    onMapClick = {
-                        scope.launch { sheetState.collapse() }
-                    },
-                    modifier = Modifier.weight(1f)
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
         }

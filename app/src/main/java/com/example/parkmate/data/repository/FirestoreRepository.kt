@@ -1,10 +1,10 @@
-// data/repository/FirestoreRepository.kt
 package com.example.parkmate.data.repository
 
 import android.util.Log
 import com.example.parkmate.data.models.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.channels.awaitClose
@@ -64,6 +64,18 @@ class FirestoreRepository @Inject constructor() {
             Log.e("FirestoreRepository", "Failed to update user field", e)
             false
         }
+    }
+    fun listenUser(uid: String, onUserChanged: (User?) -> Unit): ListenerRegistration {
+        return usersCollection
+            .document(uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onUserChanged(null)
+                    return@addSnapshotListener
+                }
+                val user = snapshot?.toObject(User::class.java)
+                onUserChanged(user)
+            }
     }
 
 
@@ -233,7 +245,7 @@ class FirestoreRepository @Inject constructor() {
             }
     }
 
-    // Zone Operations
+    // --- START: ZONE OPERATIONS ---
     suspend fun getZones(): List<Zone> {
         return try {
             val querySnapshot = zonesCollection.get().await()
@@ -244,6 +256,37 @@ class FirestoreRepository @Inject constructor() {
             emptyList()
         }
     }
+
+    suspend fun addZone(zone: Zone): String {
+        return try {
+            val documentRef = if (zone.id.isNotEmpty()) {
+                zonesCollection.document(zone.id).set(zone).await()
+                zonesCollection.document(zone.id)
+            } else {
+                zonesCollection.add(zone).await()
+            }
+            documentRef.id
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun updateZone(zoneId: String, updates: Map<String, Any>) {
+        try {
+            zonesCollection.document(zoneId).update(updates).await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun deleteZone(zoneId: String) {
+        try {
+            zonesCollection.document(zoneId).delete().await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+    // --- END: ZONE OPERATIONS ---
 
     // Ticket Operations
     suspend fun createTicket(ticket: Ticket): String {

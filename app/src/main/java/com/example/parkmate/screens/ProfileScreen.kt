@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,20 +53,20 @@ import com.example.parkmate.viewmodel.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
-    // CHANGED: Added NavController and ViewModel parameters
     navController: NavHostController,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    // Profile content
+    val userState = viewModel.user.collectAsState()
+
     Column(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
-            .fillMaxSize() // Use fillMaxSize for proper scrolling
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Profile Image and Name
+        // Profile Image and initials
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -75,7 +76,9 @@ fun ProfileScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "AC",
+                text = userState.value?.let {
+                    it.name.split(" ").map { n -> n.firstOrNull()?.uppercase() ?: "" }.joinToString("")
+                } ?: "--",
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -87,12 +90,12 @@ fun ProfileScreen(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
                     .align(Alignment.BottomEnd)
-                    .border(2.dp,  MaterialTheme.colorScheme.background, CircleShape),
+                    .border(2.dp, MaterialTheme.colorScheme.background, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "✓",
-                    color =  MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -101,42 +104,55 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Name
         Text(
-            text = "Aleix Cerqueda",
+            text = userState.value?.name ?: stringResource(R.string.unknown_user),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color =  MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
 
-        Text(
-            text = "${stringResource(R.string.member_since)} 2025",
-            fontSize = 14.sp,
-            color =  MaterialTheme.colorScheme.onSurfaceVariant
-        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Personal Information Section
         SectionCard(title = stringResource(R.string.personal_information)) {
-            ProfileItem(Icons.Default.Person, stringResource(R.string.full_name), "Aleix Cerqueda")
-            ProfileItem(Icons.Default.Email, stringResource(R.string.email_address), "acb46@alumnes.udl.cat")
-            ProfileItem(Icons.Default.Phone, stringResource(R.string.phone_number), "+34 684 02 63 88")
-            ProfileItem(Icons.Default.LocationOn, stringResource(R.string.address), "C/Major 1, Bell-lloc", isLast = true)
+            userState.value?.let { user ->
+                ProfileItem(Icons.Default.Person, stringResource(R.string.full_name), user.name)
+                ProfileItem(Icons.Default.Email, stringResource(R.string.email_address), user.email)
+                ProfileItem(Icons.Default.Phone, stringResource(R.string.phone_number), user.phone)
+                //ProfileItem(Icons.Default.LocationOn, stringResource(R.string.address), user.address, isLast = true)
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Banking & Payment Section
         SectionCard(title = stringResource(R.string.banking_payment)) {
-            ProfileItem(Icons.Default.CreditCard, stringResource(R.string.primary_payment_method), "Visa •••• 4567", "${stringResource(R.string.expires)} 12/26")
-            ProfileItem(Icons.Default.AccountBalance, stringResource(R.string.bank_account), "Chase Bank", "•••• •••• •••• 8901", isLast = true)
+            /*userState.value?.let { user ->
+                ProfileItem(
+                    Icons.Default.CreditCard,
+                    stringResource(R.string.primary_payment_method),
+                    user.primaryCard,
+                    user.cardExpiry
+                )
+                ProfileItem(
+                    Icons.Default.AccountBalance,
+                    stringResource(R.string.bank_account),
+                    user.bankName,
+                    user.bankAccountMasked,
+                    isLast = true
+                )
+            }
+
+             */
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Save Changes Button
         Button(
-            onClick = { /* TODO */ },
+            onClick = { /* TODO: implement save changes */ },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -153,14 +169,9 @@ fun ProfileScreen(
         // Sign Out Button
         TextButton(
             onClick = {
-                // CHANGED: This is the new sign-out logic
                 viewModel.signOut()
                 navController.navigate(Screen.LoginScreen.route) {
-                    // This clears the entire back stack, so the user cannot go back to the profile
-                    popUpTo(navController.graph.startDestinationId) {
-                        inclusive = true
-                    }
-                    // This ensures that if the user logs in again, they don't get multiple copies of the main screen
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     launchSingleTop = true
                 }
             },
@@ -168,7 +179,7 @@ fun ProfileScreen(
         ) {
             Text(
                 text = stringResource(R.string.sign_out),
-                color = MaterialTheme.colorScheme.error, // Use error color for destructive actions
+                color = MaterialTheme.colorScheme.error,
                 fontSize = 16.sp
             )
         }
@@ -176,7 +187,6 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
 
 @Composable
 fun SectionCard(
