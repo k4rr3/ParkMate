@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen() {
+    val pepe = true
     val repo = remember { FirestoreRepository() }
 
     var allUsers by remember { mutableStateOf<List<User>>(emptyList()) }
