@@ -16,6 +16,7 @@ import com.example.parkmate.auth.SignUpScreen
 import com.example.parkmate.feature_splash_screen.presentation.SplashScreen
 import com.example.parkmate.ui.MapScreen
 import com.example.parkmate.ui.screens.AdminScreen
+import com.example.parkmate.ui.theme.LanguageViewModel
 import com.example.parkmate.ui.theme.ThemeViewModel
 
 @SuppressLint("MissingPermission")
@@ -24,7 +25,8 @@ fun Navigation(
     navController: NavHostController,
     innerPadding: PaddingValues,
     snackbarHostState: SnackbarHostState,
-    themeViewModel: ThemeViewModel
+    themeViewModel: ThemeViewModel,
+    languageViewModel: LanguageViewModel
 ) {
     NavHost(
         navController = navController,
@@ -57,17 +59,17 @@ fun Navigation(
             route = Screen.CarDetailsScreen.route + "/{vehicleId}"
         ) { backStackEntry ->
             val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
-            CarDetailsScreenWrapper(vehicleId = vehicleId)
+            CarDetailsScreenWrapper(vehicleId = vehicleId,navController)
         }
 
         composable(route = Screen.MenuScreen.route) {
             MenuScreen(navController = navController)
         }
         composable(route = Screen.ProfileScreen.route) {
-            ProfileScreen()
+            ProfileScreen(navController = navController)
         }
         composable(route = Screen.SettingsScreen.route) {
-            SettingsScreen(themeViewModel = themeViewModel)
+            SettingsScreen(themeViewModel = themeViewModel,navController=navController,languageViewModel=languageViewModel)
         }
         composable(route = Screen.CarListScreen.route){
             CarListScreen(navController = navController)
@@ -78,6 +80,13 @@ fun Navigation(
         composable(route= Screen.AdminScreen.route){
             AdminScreen()
         }
+        composable(route= Screen.AboutUsScreen.route){
+            AboutUsScreen()
+        }
+        composable(route= Screen.TermsAndConditionsScreen.route){
+            TermsAndConditionsScreen()
+        }
+
         /* composable(route = Screen.SavedCarSpotsScreen.route) {
              SavedCarSpotsScreen(navController = navController)
          }

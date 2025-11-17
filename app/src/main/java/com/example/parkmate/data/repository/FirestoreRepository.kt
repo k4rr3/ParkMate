@@ -5,8 +5,11 @@ import android.util.Log
 import com.example.parkmate.data.models.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,6 +25,61 @@ class FirestoreRepository @Inject constructor() {
     private val interestPointsCollection = db.collection("interestPoints")
     private val zonesCollection = db.collection("zones")
     private val ticketsCollection = db.collection("tickets")
+
+    // 🧩 Admin user operations
+
+    // Get all users (with realtime updates)
+    fun getAllUsersRealtime(onUpdate: (List<User>) -> Unit) {
+        usersCollection.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e("FirestoreRepository", "Error listening for users", error)
+                onUpdate(emptyList())
+                return@addSnapshotListener
+            }
+
+            val users = snapshot?.documents?.mapNotNull { doc ->
+                doc.toObject(User::class.java)?.copy(uid = doc.id)
+            } ?: emptyList()
+
+            onUpdate(users)
+        }
+    }
+
+    // Delete a user document
+    suspend fun deleteUser(uid: String): Boolean {
+        return try {
+            usersCollection.document(uid).delete().await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepository", "Failed to delete user", e)
+            false
+        }
+    }
+
+    // Update a user field (e.g. upgrade to premium)
+    suspend fun updateUserField(uid: String, field: String, value: Any): Boolean {
+        return try {
+            usersCollection.document(uid).update(field, value).await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepository", "Failed to update user field", e)
+            false
+        }
+    }
+    fun listenUser(uid: String, onUserChanged: (User?) -> Unit): ListenerRegistration {
+        return usersCollection
+            .document(uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onUserChanged(null)
+                    return@addSnapshotListener
+                }
+                val user = snapshot?.toObject(User::class.java)
+                onUserChanged(user)
+            }
+    }
+
+
 
     // User Operations
     suspend fun createUser(user: User): Boolean {
@@ -98,6 +156,18 @@ class FirestoreRepository @Inject constructor() {
             null
         }
     }
+    fun getVehicleRealtime(vehicleId: String, onUpdate: (Vehicle?) -> Unit) {
+        vehiclesCollection.document(vehicleId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onUpdate(null)
+                    return@addSnapshotListener
+                }
+                val vehicle = snapshot?.toObject(Vehicle::class.java)?.copy(id = snapshot?.id ?: "")
+                onUpdate(vehicle)
+            }
+    }
+
 
     suspend fun updateVehicle(vehicleId: String, updates: Map<String, Any>): Boolean {
         return try {

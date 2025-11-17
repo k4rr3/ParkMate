@@ -10,7 +10,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -21,7 +20,8 @@ import com.example.parkmate.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun  AppScaffold(
-    themeViewModel: ThemeViewModel
+    themeViewModel: ThemeViewModel,
+    languageViewModel: LanguageViewModel
 ) {
     val navController = rememberNavController()
     val scaffoldState = rememberScaffoldState()
@@ -43,7 +43,11 @@ fun  AppScaffold(
         Screen.CarListScreen.route -> stringResource(R.string.car_list_navbar)
         Screen.MapScreen.route -> stringResource(R.string.map_navbar)
         Screen.AdminScreen.route -> stringResource(R.string.admin_navbar)
-        else -> "Add the page in AppScafold file"
+        Screen.CarDetailsScreen.route.plus("/{vehicleId}") -> stringResource(R.string.car_details_navbar)
+        Screen.AboutUsScreen.route -> stringResource(R.string.about_us_navbar)
+        Screen.TermsAndConditionsScreen.route -> stringResource(R.string.terms_and_conditions_navbar)
+
+        else -> stringResource(R.string.add_the_page_in_appscafold_file)
     }
     Scaffold(
         snackbarHost = {
@@ -57,7 +61,11 @@ fun  AppScaffold(
                     title = { Text(currentTitle,color = MaterialTheme.colorScheme.onBackground ) },
                     navigationIcon = {
                         IconButton(onClick = {
-                            navController.navigate(Screen.MenuScreen.route)}) {
+                            navController.navigate(Screen.MenuScreen.route){
+                                popUpTo(Screen.MenuScreen.route) {
+                                    inclusive = true
+                                }
+                            }}) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onBackground )
                         }
                     },
@@ -77,6 +85,6 @@ fun  AppScaffold(
 
         },
     ) { innerPadding ->
-        Navigation(navController = navController, innerPadding = innerPadding, snackbarHostState = snackbarHost.snackbarHostState, themeViewModel = themeViewModel)
+        Navigation(navController = navController, innerPadding = innerPadding, snackbarHostState = snackbarHost.snackbarHostState, themeViewModel = themeViewModel, languageViewModel = languageViewModel)
     }
 }

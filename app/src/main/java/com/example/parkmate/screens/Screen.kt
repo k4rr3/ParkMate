@@ -25,4 +25,7 @@ sealed class Screen(val route: String, @StringRes val resourceId: Int) {
     object SavedCarSpotsScreen : Screen("saved_car_spots_screen", resourceId = R.string.saved_car_spots_screen)
     object SavedParkingSpotsScreen : Screen("saved_parking_spots_screen", resourceId = R.string.saved_parking_spots_screen)
     object TabLayout : Screen("tab_layout", R.string.tab_layout)
+    object AboutUsScreen : Screen("about_us", resourceId = R.string.about_us_navbar)
+    object TermsAndConditionsScreen : Screen("terms_and_conditions", resourceId = R.string.terms_and_conditions_navbar)
+
 }
