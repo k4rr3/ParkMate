@@ -174,5 +174,7 @@
     <string name="save">Save</string>
     <string name="failed_to_save_changes">Failed to save changes:</string>
     <string name="delete_vehicle">Delete Vehicle</string>
+    <string name="normal_users">Normal Users</string>
+    <string name="no_users_found">No users found</string>
 
 </resources>
