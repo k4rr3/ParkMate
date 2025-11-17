@@ -47,7 +47,7 @@ fun  AppScaffold(
         Screen.AboutUsScreen.route -> stringResource(R.string.about_us_navbar)
         Screen.TermsAndConditionsScreen.route -> stringResource(R.string.terms_and_conditions_navbar)
 
-        else -> "Add the page in AppScafold file"
+        else -> stringResource(R.string.add_the_page_in_appscafold_file)
     }
     Scaffold(
         snackbarHost = {

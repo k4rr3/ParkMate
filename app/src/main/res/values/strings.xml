@@ -195,5 +195,23 @@
     <string name="terms_and_conditions_navbar"><![CDATA[Terms & Conditions]]></string>
     <string name="terms_and_conditions"><![CDATA[Terms & Conditions]]></string>
     <string name="about_us">About Us</string>
+    <string name="sign_in_with_google_now">Sign in with Google</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="add_the_page_in_appscafold_file">Add the page in AppScafold file</string>
+    <string name="policy_number">Policy Number</string>
+    <string name="coverage">Coverage</string>
+    <string name="monthly_remium">Monthly Premium</string>
+    <string name="view_policy">View Policy</string>
+    <string name="visit_mapfre">Visit Mapfre</string>
+    <string name="name">Name</string>
+    <string name="brand">Brand</string>
+    <string name="model">Model</string>
+    <string name="year">Year</string>
+    <string name="plate">Licence Plate Number</string>
+    <string name="fuel_type">Fuel Type</string>
+    <string name="dgt_label">DGT Label</string>
+    <string name="add">Add</string>
+    <string name="no_vehicles_yet_add_one">No vehicles yet. Add one!</string>
+    <string name="view_details">View Details</string>
 
 </resources>

@@ -64,7 +64,7 @@ fun Navigation(
             MenuScreen(navController = navController)
         }
         composable(route = Screen.ProfileScreen.route) {
-            ProfileScreen()
+            ProfileScreen(navController = navController)
         }
         composable(route = Screen.SettingsScreen.route) {
             SettingsScreen(themeViewModel = themeViewModel,navController=navController)
