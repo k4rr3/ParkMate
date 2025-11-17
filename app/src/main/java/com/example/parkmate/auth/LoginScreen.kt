@@ -172,14 +172,14 @@ fun LoginScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_google_round),
-                        contentDescription = "Sign in with Google",
+                        contentDescription = stringResource(R.string.sign_in_with_google_now),
                         modifier = Modifier
                             .height(24.dp)
                             .width(24.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        text = stringResource(R.string.sign_in_with_google),
+                        text = stringResource(R.string.continue_with_google),
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -195,29 +195,6 @@ fun LoginScreen(
                     Text(stringResource(R.string.don_t_have_account))
                 }
 
-                /*                Button(
-                                    onClick = {
-                                        navController.navigate(Screen.MapScreen.route)
-                                    },
-                                    enabled = !isLoading,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 8.dp)
-                                ) {
-                                    Text("BYPASS LOGIN")
-                                }
-
-                                Button(
-                                    onClick = {
-                                        navController.navigate(Screen.CarDetailsScreen.route)
-                                    },
-                                    enabled = !isLoading,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 8.dp)
-                                ) {
-                                    Text("BYPASS LOGIN")
-                                }*/
 
                 if (isLoading) {
                     CircularProgressIndicator()

@@ -365,22 +365,22 @@ fun CarInsuranceCard() {
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("Policy Number", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.policy_number), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("POL-2024-X3-001", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Coverage", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
+                    Text(stringResource(R.string.coverage), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
                     Text("Comprehensive", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("Expires", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.expires), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Dec 31, 2024", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Monthly Premium", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
+                    Text(stringResource(R.string.monthly_remium), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
                     Text("€89.99", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 }
             }
@@ -388,12 +388,12 @@ fun CarInsuranceCard() {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 OutlinedButton(onClick = { /* TODO */ }, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Outlined.Description, null, modifier = Modifier.size(16.dp))
-                    Text("View Policy", modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.view_policy), modifier = Modifier.padding(start = 8.dp))
                 }
                 Spacer(modifier = Modifier.size(8.dp))
                 Button(onClick = { /* TODO */ }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Green)) {
                     Icon(Icons.Outlined.Edit, null, modifier = Modifier.size(16.dp))
-                    Text("Visit Mapfre", modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.visit_mapfre), modifier = Modifier.padding(start = 8.dp))
                 }
             }
         }

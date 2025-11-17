@@ -31,9 +31,8 @@ import com.example.parkmate.ui.theme.CarListIcon
 import com.example.parkmate.viewmodel.VehicleViewModel
 import com.google.firebase.firestore.GeoPoint
 import androidx.compose.foundation.text.KeyboardOptions
-
-
-
+import androidx.compose.ui.res.stringResource
+import com.example.parkmate.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +68,7 @@ fun CarListScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No vehicles yet. Add one!")
+                Text(stringResource(R.string.no_vehicles_yet_add_one))
             }
         } else {
             LazyColumn(
@@ -151,7 +150,7 @@ fun VehicleCard(navController: NavHostController, vehicle: Vehicle) {
             ) {
                 Icon(imageVector = Icons.Default.LocationOn, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("View Details", textAlign = TextAlign.Center)
+                Text(stringResource(R.string.view_details), textAlign = TextAlign.Center)
             }
         }
     }
@@ -178,49 +177,56 @@ fun AddCarForm(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "Add New Vehicle",
+                    text = stringResource(R.string.add_new_vehicle),
                     style = MaterialTheme.typography.titleLarge
                 )
 
                 ValidatedTextField(
-                    label = "Name",
+                    label = stringResource(R.string.name),
                     value = formState.name,
                     onValueChange = viewModel::onNameChange,
                     errorMessage = formState.nameError
                 )
+
                 ValidatedTextField(
-                    label = "Brand",
+                    label = stringResource(R.string.brand),
                     value = formState.brand,
                     onValueChange = viewModel::onBrandChange,
                     errorMessage = formState.brandError
                 )
+
                 ValidatedTextField(
-                    label = "Model",
+                    label = stringResource(R.string.model),
                     value = formState.model,
                     onValueChange = viewModel::onModelChange,
                     errorMessage = formState.modelError
                 )
+
                 ValidatedTextField(
-                    label = "Year",
+                    label = stringResource(R.string.year),
                     value = formState.year,
                     onValueChange = viewModel::onYearChange,
                     errorMessage = formState.yearError,
                     keyboardType = KeyboardType.Number
                 )
+
                 ValidatedTextField(
-                    label = "Plate",
+                    label = stringResource(R.string.plate),
                     value = formState.plate,
                     onValueChange = viewModel::onPlateChange,
                     errorMessage = formState.plateError
                 )
-                ValidatedTextField("Fuel Type", formState.fuelType, viewModel::onFuelTypeChange)
 
                 ValidatedTextField(
-                    "DGT Label",
-                    formState.dgtLabel,
-                    viewModel::onDgtLabelChange,
+                    label = stringResource(R.string.fuel_type),
+                    value = formState.fuelType,
+                    onValueChange = viewModel::onFuelTypeChange
+                )
 
-                    // ADD THIS PARAMETER
+                ValidatedTextField(
+                    label = stringResource(R.string.dgt_label),
+                    value = formState.dgtLabel,
+                    onValueChange = viewModel::onDgtLabelChange,
                     errorMessage = formState.dgtLabelError
                 )
 
@@ -231,9 +237,11 @@ fun AddCarForm(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
+
                     Spacer(modifier = Modifier.width(8.dp))
+
                     Button(
                         onClick = {
                             val newVehicle = Vehicle(
@@ -252,13 +260,14 @@ fun AddCarForm(
                         },
                         enabled = formState.isFormValid
                     ) {
-                        Text("Add")
+                        Text(stringResource(R.string.add))
                     }
                 }
             }
         }
     }
 }
+
 
 // Reusable validated text field to avoid repeating code
 @Composable
