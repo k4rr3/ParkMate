@@ -213,5 +213,9 @@
     <string name="add">Add</string>
     <string name="no_vehicles_yet_add_one">No vehicles yet. Add one!</string>
     <string name="view_details">View Details</string>
+    <string name="privacy_security"><![CDATA[Privacy & Security]]></string>
+    <string name="english">English</string>
+    <string name="spanish">Español</string>
+    <string name="catalan">Català</string>
 
 </resources>

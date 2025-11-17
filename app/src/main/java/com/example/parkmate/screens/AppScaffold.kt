@@ -85,6 +85,6 @@ fun  AppScaffold(
 
         },
     ) { innerPadding ->
-        Navigation(navController = navController, innerPadding = innerPadding, snackbarHostState = snackbarHost.snackbarHostState,languageViewModel, themeViewModel = themeViewModel)
+        Navigation(navController = navController, innerPadding = innerPadding, snackbarHostState = snackbarHost.snackbarHostState, themeViewModel = themeViewModel, languageViewModel = languageViewModel)
     }
 }

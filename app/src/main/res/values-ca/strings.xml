@@ -221,8 +221,7 @@
     <string name="add">Afegir</string>
     <string name="no_vehicles_yet_add_one">Encara no tens vehicles. Afegeix-ne un!</string>
     <string name="view_details">Veure Detalls</string>
-    <string name="english">English</string>
-    <string name="spanish">Español</string>
-    <string name="catalan">Català</string>
+    <string name="privacy_security"><![CDATA[Privacitat & Seguretat]]></string>
+
 
 </resources>

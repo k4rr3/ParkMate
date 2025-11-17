@@ -68,6 +68,7 @@ class PermissionManager(
  * @param onPermissionResult An optional callback triggered with the result of a permission request.
  * @return An instance of [PermissionManager].
  */
+
 @Composable
 fun rememberPermissionManager(
     permission: String,
@@ -138,12 +139,14 @@ private fun openAppSettings(context: Context) {
 @Composable
 fun SettingsScreen(
     themeViewModel: ThemeViewModel,
-    navController: NavHostController
+    navController: NavHostController,
+    languageViewModel: LanguageViewModel
 ) {
     // Create and remember a manager for each required permission.
     val locationPermissionManager = rememberPermissionManager(Manifest.permission.ACCESS_FINE_LOCATION)
     val notificationPermissionManager = rememberPermissionManager(Manifest.permission.POST_NOTIFICATIONS)
-
+    var showLanguageDialog by remember { mutableStateOf(false) }
+    val currentLang = languageViewModel.language.collectAsState().value
     val context = LocalContext.current
 
     Scaffold { paddingValues ->
@@ -163,9 +166,9 @@ fun SettingsScreen(
                 SettingsItem(
                     icon = Icons.Default.Language,
                     title = stringResource(R.string.Language),
-                    subtitle = stringResource(R.string.English),
+                    subtitle = langName(currentLang),
                     hasArrow = true,
-                    onClick = { /* Handle language change */ }
+                    onClick = { showLanguageDialog = true }
                 )
 
                 Divider(modifier = Modifier.padding(start = 72.dp))
@@ -218,7 +221,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            SectionHeader(title = "Privacy & Security")
+            SectionHeader(title = stringResource(R.string.privacy_security))
 
             SettingsCard {
                 SettingsItem(
@@ -243,7 +246,38 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(text = stringResource(R.string.Language)) },
+            text = {
+                Column {
+                    listOf(
+                        "en" to stringResource(R.string.english),
+                        "es" to stringResource(R.string.spanish),
+                        "ca" to stringResource(R.string.catalan)
+                    ).forEach { (code, label) ->
+                        Text(
+                            text = label,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    languageViewModel.changeLanguage(code)
+                                    showLanguageDialog = false
+                                }
+                                .padding(12.dp)
+                        )
+
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
 }
+
+
 
 
 // --- UI COMPONENT COMPOSABLES ---
@@ -395,3 +429,13 @@ fun SettingsItemWithSwitch(
         )
     }
 }
+@Composable
+fun langName(code: String): String {
+    return when (code) {
+        "en" -> stringResource(R.string.english)
+        "es" -> stringResource(R.string.spanish)
+        "ca" -> stringResource(R.string.catalan)
+        else -> stringResource(R.string.english)
+    }
+}
+
