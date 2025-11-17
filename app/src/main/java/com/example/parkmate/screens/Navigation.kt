@@ -16,6 +16,7 @@ import com.example.parkmate.auth.SignUpScreen
 import com.example.parkmate.feature_splash_screen.presentation.SplashScreen
 import com.example.parkmate.ui.MapScreen
 import com.example.parkmate.ui.screens.AdminScreen
+import com.example.parkmate.ui.theme.LanguageViewModel
 import com.example.parkmate.ui.theme.ThemeViewModel
 
 @SuppressLint("MissingPermission")
@@ -24,7 +25,8 @@ fun Navigation(
     navController: NavHostController,
     innerPadding: PaddingValues,
     snackbarHostState: SnackbarHostState,
-    themeViewModel: ThemeViewModel
+    themeViewModel: ThemeViewModel,
+    languageViewModel: LanguageViewModel
 ) {
     NavHost(
         navController = navController,
@@ -67,7 +69,7 @@ fun Navigation(
             ProfileScreen(navController = navController)
         }
         composable(route = Screen.SettingsScreen.route) {
-            SettingsScreen(themeViewModel = themeViewModel,navController=navController)
+            SettingsScreen(themeViewModel = themeViewModel,navController=navController,languageViewModel=languageViewModel)
         }
         composable(route = Screen.CarListScreen.route){
             CarListScreen(navController = navController)

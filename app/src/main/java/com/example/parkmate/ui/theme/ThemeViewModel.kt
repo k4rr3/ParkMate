@@ -17,7 +17,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // Load saved preference
         viewModelScope.launch {
-            ThemePreference.getDarkMode(application).collect {
+            UserPreference.getDarkMode(application).collect {
                 _isDarkMode.value = it
             }
         }
@@ -29,11 +29,12 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
         // Save new preference
         viewModelScope.launch {
-            ThemePreference.saveDarkMode(this@ThemeViewModel.getApplication(), newValue)
+            UserPreference.saveDarkMode(this@ThemeViewModel.getApplication(), newValue)
         }
     }
     fun getDarkMode(): Boolean {
         Log.d("ThemeViewModel", "getDarkMode called")
         return _isDarkMode.value
     }
+
 }
