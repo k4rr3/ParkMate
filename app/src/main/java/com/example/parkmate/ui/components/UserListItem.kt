@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.parkmate.data.models.User
 
+
 @Composable
 fun UserListItem(
     user: User,

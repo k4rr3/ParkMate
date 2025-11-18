@@ -365,28 +365,4 @@ class AuthViewModel @Inject constructor(
     fun setCredentialsError() {
         errorMessage = "Credentials are not correct"
     }
-
-    fun checkEmailVerification() {
-        viewModelScope.launch {
-            isLoading = true
-            clearMessages()
-            val user = auth.currentUser
-            if (user != null) {
-                try {
-                    user.reload().await()
-                    isEmailVerified = user.isEmailVerified
-                    if (isEmailVerified) {
-                        successMessage = context.getString(R.string.email_verified)
-                    } else {
-                        errorMessage = context.getString(R.string.please_verify_email)
-                    }
-                } catch (e: Exception) {
-                    errorMessage = context.getString(R.string.error) + ": ${e.message}"
-                }
-            } else {
-                errorMessage = context.getString(R.string.user_not_found_or_disabled)
-            }
-            isLoading = false
-        }
-    }
 }
