@@ -1,5 +1,6 @@
 package com.example.parkmate.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -35,12 +37,20 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,6 +60,7 @@ import androidx.navigation.NavHostController
 import com.example.parkmate.R
 import com.example.parkmate.ui.theme.LightGray
 import com.example.parkmate.viewmodel.ProfileViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
@@ -57,6 +68,16 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val userState = viewModel.user.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+
+    val name by viewModel.name.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val phone by viewModel.phone.collectAsState()
+
+    val emailValid by viewModel.emailValid.collectAsState()
+    val phoneValid by viewModel.phoneValid.collectAsState()
 
     Column(
         modifier = Modifier
@@ -117,14 +138,41 @@ fun ProfileScreen(
 
         // Personal Information Section
         SectionCard(title = stringResource(R.string.personal_information)) {
-            userState.value?.let { user ->
-                ProfileItem(Icons.Default.Person, stringResource(R.string.full_name), user.name)
-                ProfileItem(Icons.Default.Email, stringResource(R.string.email_address), user.email)
-                ProfileItem(Icons.Default.Phone, stringResource(R.string.phone_number), user.phone)
-                //ProfileItem(Icons.Default.LocationOn, stringResource(R.string.address), user.address, isLast = true)
-            }
-        }
 
+            ProfileItem(
+                icon = Icons.Default.Person,
+                label = stringResource(R.string.full_name),
+                value = name,
+                isValid = true,
+                errorMessage = "",
+                fieldKey = "name",
+                onValueChange = { viewModel.name.value = it },
+                viewModel = viewModel
+            )
+
+            ProfileItem(
+                icon = Icons.Default.Email,
+                label = stringResource(R.string.email_address),
+                value = email,
+                isValid = emailValid,
+                errorMessage = stringResource(R.string.invalid_email),
+                fieldKey = "email",
+                onValueChange = { viewModel.email.value = it },
+                viewModel = viewModel
+            )
+
+            ProfileItem(
+                icon = Icons.Default.Phone,
+                label = stringResource(R.string.phone_number),
+                value = phone,
+                isValid = phoneValid,
+                errorMessage = stringResource(R.string.invalid_phone),
+                fieldKey = "phone",
+                onValueChange = { viewModel.phone.value = it },
+                viewModel = viewModel,
+                isLast = true
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         // Banking & Payment Section
@@ -150,9 +198,20 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Save Changes Button
+
+
         Button(
-            onClick = { /* TODO: implement save changes */ },
+            onClick = {
+                scope.launch {
+                    val success = viewModel.saveChanges()
+                    viewModel.exitEditingAll()
+                    Toast.makeText(
+                        context,
+                        if (success) context.getString(R.string.changes_saved) else context.getString(R.string.error_saving_changes),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -163,6 +222,7 @@ fun ProfileScreen(
                 fontSize = 16.sp
             )
         }
+
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -221,69 +281,63 @@ fun ProfileItem(
     icon: ImageVector,
     label: String,
     value: String,
-    additionalInfo: String? = null,
+    isValid: Boolean,
+    errorMessage: String,
+    fieldKey: String,
+    onValueChange: (String) -> Unit,
+    viewModel: ProfileViewModel,
     isLast: Boolean = false
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    val editing by remember { derivedStateOf { viewModel.editingStates[fieldKey] ?: false } }
+    val scope = rememberCoroutineScope()
+
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
+            Icon(icon, contentDescription = null)
 
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)
+                modifier = Modifier.weight(1f).padding(start = 16.dp)
             ) {
-                Text(
-                    text = label,
-                    fontSize = 14.sp,
-                    color =  MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(label, fontSize = 14.sp)
 
-                Text(
-                    text = value,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                if (additionalInfo != null) {
-                    Text(
-                        text = additionalInfo,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                if (editing) {
+                    TextField(
+                        value = value,
+                        onValueChange = onValueChange,
+                        isError = !isValid,
+                        modifier = Modifier.fillMaxWidth()
                     )
+                    if (!isValid) {
+                        Text(
+                            text = errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp
+                        )
+                    }
+                } else {
+                    Text(value, fontSize = 16.sp)
                 }
             }
 
             IconButton(
-                onClick = { /* TODO: Implement edit functionality */ },
-                modifier = Modifier.size(24.dp)
+                enabled = !editing || isValid,
+                onClick = {
+                    if (editing && isValid) {
+                        scope.launch { viewModel.saveSingleField(fieldKey, value) }
+                    }
+                    viewModel.editingStates[fieldKey] = !editing
+
+                }
             ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Icon(if (editing) Icons.Default.Check else Icons.Default.Edit, contentDescription = null)
             }
         }
 
-        if (!isLast) {
-            Divider(
-                modifier = Modifier.padding(start = 40.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-                thickness = 1.dp
-            )
-        }
+        if (!isLast) Divider()
     }
 }
