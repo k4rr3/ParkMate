@@ -1,0 +1,50 @@
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# ART/Dalvik VM files
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+**/build/
+local.properties
+
+# Kotlin
+*.kotlin_module
+
+# Android Studio files
+.idea/
+*.iml
+*.ipr
+*.iws
+caches/
+captures/
+
+# Keystore files (MUY IMPORTANTE)
+*.jks
+*.keystore
+
+# Avoid pushing sensitive local gradle config
+*.gradle.local
+*.gradle.kts.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Android specific
+.navigation/
