@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,12 +38,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.parkmate.ui.theme.*
+import com.example.parkmate.viewmodel.ProfileViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MenuScreen(navController: NavHostController) {
+fun MenuScreen(navController: NavHostController,
+               viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val user = viewModel.user.collectAsState().value
     Scaffold()
     { paddingValues ->
         Column(
@@ -85,14 +92,18 @@ fun MenuScreen(navController: NavHostController) {
                     title = stringResource(R.string.user_profile_navbar),
                     destination = Screen.ProfileScreen.route,
                 )
-                MenuButton(
-                    navController = navController,
-                    icon = Icons.Outlined.ManageAccounts,
-                    iconBackground = LightRed,
-                    iconTint = Red,
-                    title = stringResource(R.string.admin_navbar),
-                    destination = Screen.AdminScreen.route,
-                )
+
+
+                if (user?.admin ?: false) {
+                    MenuButton(
+                        navController = navController,
+                        icon = Icons.Outlined.ManageAccounts,
+                        iconBackground = LightRed,
+                        iconTint = Red,
+                        title = stringResource(R.string.admin_navbar),
+                        destination = Screen.AdminScreen.route,
+                    )
+                }
             }
         }
 

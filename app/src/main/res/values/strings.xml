@@ -221,5 +221,16 @@
     <string name="error_saving_changes">Error saving changes</string>
     <string name="invalid_email">Invalid Email</string>
     <string name="invalid_phone">Invalid Phone</string>
+    <string name="are_you_sure_you_want_to_delete">Are you sure you want to delete</string>
+    <string name="this_action_cannot_be_undone">This action cannot be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="admin_user">Admin User</string>
+    <string name="standard_user">Standard User</string>
+    <string name="assign_admin_role">Assign Admin Role</string>
+    <string name="remove_admin_role">Remove Admin Role</string>
+    <string name="are_you_sure_you_want_to_assign_admin_role_to">Are you sure you want to give admin privileges to</string>
+    <string name="are_you_sure_you_want_to_remove_admin_role_from">Are you sure you want to remove admin rights from</string>
+    <string name="assign_admin">Assign Admin</string>
+    <string name="remove_admin">Remove Admin</string>
 
 </resources>

@@ -28,15 +28,9 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun deleteUser(uid: String) {
+    fun toggleAdmin(uid: String, isAdmin: Boolean) {
         viewModelScope.launch {
-            repository.deleteUser(uid)
-        }
-    }
-
-    fun togglePremium(uid: String, isPremium: Boolean) {
-        viewModelScope.launch {
-            repository.updateUserField(uid, "premium", !isPremium)
+            repository.updateUserField(uid, "admin", !isAdmin)
         }
     }
 }

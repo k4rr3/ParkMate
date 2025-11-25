@@ -37,6 +37,9 @@ fun AdminScreen() {
     var selectedTab by remember { mutableStateOf(0) } // 0 = All, 1 = Admins, 2 = Normal
     var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
+    var userToDelete by remember { mutableStateOf<User?>(null) }
+    var userToToggleAdmin by remember { mutableStateOf<User?>(null) }
+
 
 
     val tabs = listOf(
@@ -159,10 +162,11 @@ fun AdminScreen() {
                     filteredUsers.forEach { user ->
                         UserListItem(
                             user = user,
+                            onToggleAdmin = {
+                                userToToggleAdmin = user
+                            },
                             onDelete = {
-                                scope.launch {
-                                    repo.deleteUser(user.uid)
-                                }
+                                userToDelete = user
                             }
                         )
                         Divider(
@@ -175,6 +179,71 @@ fun AdminScreen() {
             }
         }
     }
+    // 🗑 Delete user confirmation dialog
+    userToDelete?.let { user ->
+        AlertDialog(
+            onDismissRequest = { userToDelete = null },
+            title = { Text(stringResource(R.string.delete_user)) },
+            text = { Text("${stringResource(R.string.are_you_sure_you_want_to_delete)} ${user.name}? ${stringResource(R.string.this_action_cannot_be_undone)}") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch { repo.deleteUser(user.uid) }
+                        userToDelete = null
+                    }
+                ) { Text(stringResource(R.string.delete), color = Color.Red) }
+            },
+            dismissButton = {
+                TextButton(onClick = { userToDelete = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+// 👤 Admin assign/remove confirmation dialog
+    userToToggleAdmin?.let { user ->
+        val makeAdmin = !user.admin
+        AlertDialog(
+            onDismissRequest = { userToToggleAdmin = null },
+            title = {
+                Text(
+                    if (makeAdmin) stringResource(R.string.assign_admin_role)
+                    else stringResource(R.string.remove_admin_role)
+                )
+            },
+            text = {
+                Text(
+                    if (makeAdmin)
+                        "${stringResource(R.string.are_you_sure_you_want_to_assign_admin_role_to)} ${user.name}?"
+                    else
+                        "${stringResource(R.string.are_you_sure_you_want_to_remove_admin_role_from)} ${user.name}?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            repo.updateUserField(user.uid, "admin", makeAdmin)
+                        }
+                        userToToggleAdmin = null
+                    }
+                ) {
+                    Text(
+                        if (makeAdmin) stringResource(R.string.assign_admin)
+                        else stringResource(R.string.remove_admin),
+                        color = if (makeAdmin) Color.Green else Color.Red
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { userToToggleAdmin = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
 }
 
 // 🧩 Example StatCard (if you want to reuse)
