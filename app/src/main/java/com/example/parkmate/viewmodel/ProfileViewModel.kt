@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import com.example.parkmate.data.models.User
 import com.example.parkmate.data.repository.FirestoreRepository
+import com.example.parkmate.ui.theme.UserPreference
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -79,8 +80,9 @@ class ProfileViewModel @Inject constructor(
         return repo.updateUserField(uid, field, value)
     }
 
-    fun signOut() {
+    suspend fun signOut() {
         auth.signOut()
+        UserPreference.setUserHasLoggedIn(context, false)
         listener?.remove()
         listener = null
     }

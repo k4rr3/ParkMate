@@ -31,7 +31,6 @@ fun  AppScaffold(
         Screen.SplashScreen.route,
         Screen.LoginScreen.route,
         Screen.SignUpScreen.route
-
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route

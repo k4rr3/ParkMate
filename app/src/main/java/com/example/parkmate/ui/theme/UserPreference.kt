@@ -1,3 +1,4 @@
+// ui/theme/UserPreference.kt
 package com.example.parkmate.ui.theme
 
 import android.content.Context
@@ -14,31 +15,37 @@ object UserPreference {
 
     private val DARK_MODE_KEY = booleanPreferencesKey("dark_mode")
     private val LANGUAGE_KEY = stringPreferencesKey("app_language")
+    private val IS_LOGGED_IN_EVER = booleanPreferencesKey("has_logged_in_ever")  // ← NEW
 
-
-    // Save dark mode preference
+    // === Dark Mode ===
     suspend fun saveDarkMode(context: Context, isDarkMode: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[DARK_MODE_KEY] = isDarkMode
         }
     }
 
-    // Get dark mode preference as a Flow
-    fun getDarkMode(context: Context): Flow<Boolean> {
-        return context.dataStore.data.map { prefs ->
-            prefs[DARK_MODE_KEY] ?: false // default = light mode
-        }
-    }
+    fun getDarkMode(context: Context): Flow<Boolean> =
+        context.dataStore.data.map { it[DARK_MODE_KEY] ?: false }
+
+    // === Language ===
     suspend fun saveLanguage(context: Context, lang: String) {
         context.dataStore.edit { prefs ->
             prefs[LANGUAGE_KEY] = lang
         }
     }
 
-    /** Get app language preference as Flow<String> */
-    fun getLanguage(context: Context): Flow<String> {
-        return context.dataStore.data.map { prefs ->
-            prefs[LANGUAGE_KEY] ?: "en" // default = English
+    fun getLanguage(context: Context): Flow<String> =
+        context.dataStore.data.map { it[LANGUAGE_KEY] ?: "en" }
+
+    // === Auth State (NEW) ===
+    suspend fun setUserHasLoggedIn(context: Context, hasLoggedIn: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[IS_LOGGED_IN_EVER] = hasLoggedIn
         }
     }
+
+    fun isUserLoggedInBefore(context: Context): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[IS_LOGGED_IN_EVER] ?: false
+        }
 }
