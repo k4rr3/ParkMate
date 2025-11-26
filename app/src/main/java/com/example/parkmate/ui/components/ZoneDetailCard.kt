@@ -3,61 +3,67 @@ package com.example.parkmate.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Divider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.parkmate.data.models.Zone
 
 @Composable
-fun ZoneDetailCard(zone: Zone) {
-    Column(
+fun ZoneDetailCard(
+    zone: Zone,
+    onNavigateClick: () -> Unit // <-- NUEVO: Lambda para manejar el clic de navegación
+) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .padding(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-        // Nombre de la zona
-        Text(
-            text = zone.name,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = zone.name,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Tarifa: ${zone.tariff}", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Capacidad: ${zone.capacity}", style = MaterialTheme.typography.bodyLarge)
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = "Horario: ${zone.schedule}", style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Divider(modifier = Modifier.padding(vertical = 4.dp))
-
-        // Filas de información
-        InfoRow(label = "Capacidad:", value = zone.capacity)
-        InfoRow(label = "Horario:", value = zone.schedule)
-        InfoRow(label = "Tarifa:", value = zone.tariff)
-    }
-}
-
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = label,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            modifier = Modifier.width(90.dp) // Ancho fijo para alinear los valores
-        )
-        Text(
-            text = value,
-            fontSize = 14.sp,
-            lineHeight = 20.sp // Mejora la legibilidad para textos largos
-        )
+            // --- AQUÍ ESTÁ EL NUEVO BOTÓN ---
+            Button(
+                onClick = onNavigateClick, // Llama a la función que nos pasan desde MapScreen
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Navigation,
+                    contentDescription = "Navigate Icon",
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(text = "Navegar")
+            }
+        }
     }
 }
