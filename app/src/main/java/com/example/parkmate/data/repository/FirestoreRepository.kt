@@ -9,6 +9,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -79,6 +80,34 @@ class FirestoreRepository @Inject constructor() {
             }
     }
 
+    fun getRemindersRealtime(vehicleId: String): Flow<List<CarReminder>> = callbackFlow {
+        val listener = db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else {
+                    val list = snapshot!!.toObjects(CarReminder::class.java)
+                    trySend(list)
+                }
+            }
+
+        awaitClose { listener.remove() }
+    }
+
+    fun addReminder(vehicleId: String, reminder: CarReminder) {
+        val id = db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .document().id
+
+        db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .document(id)
+            .set(reminder.copy(id = id))
+    }
 
 
     // User Operations

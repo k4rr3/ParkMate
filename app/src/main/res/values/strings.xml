@@ -232,5 +232,15 @@
     <string name="are_you_sure_you_want_to_remove_admin_role_from">Are you sure you want to remove admin rights from</string>
     <string name="assign_admin">Assign Admin</string>
     <string name="remove_admin">Remove Admin</string>
+    <string name="pending">Pending</string>
+    <string name="soon">Soon</string>
+    <string name="overdue">Overdue</string>
+    <string name="due_date">Due date</string>
+    <string name="no_reminders_yet">No reminders yet</string>
+    <string name="car_reminders">Car reminders</string>
+    <string name="select_date">Select Date</string>
+    <string name="reminder_title">Reminder Title</string>
+    <string name="add_reminder">Add reminder</string>
+    <string name="pick_date">Pick date</string>
 
 </resources>

@@ -3,12 +3,15 @@ package com.example.parkmate.viewmodel
 import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.parkmate.data.models.CarReminder
+import com.example.parkmate.data.models.ReminderStatus
 import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.data.repository.FirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,10 +19,32 @@ class VehicleViewModel @Inject constructor(
     private val firestoreRepository: FirestoreRepository
 ) : ViewModel() {
 
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    private val _reminders = MutableStateFlow<List<CarReminder>>(emptyList())
     private val _vehicles = MutableStateFlow<List<Vehicle>>(emptyList())
     val vehicles: StateFlow<List<Vehicle>> = _vehicles.asStateFlow()
+    val reminders = _reminders.asStateFlow()
 
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+
+    fun loadReminders(vehicleId: String) {
+        viewModelScope.launch {
+            firestoreRepository.getRemindersRealtime(vehicleId).collect {
+                _reminders.value = it
+            }
+        }
+    }
+
+    fun addReminder(vehicleId: String, title: String, dueDate: Long) {
+        val reminder = CarReminder(
+            vehicleId = vehicleId,
+            title = title,
+            dueDate = dueDate
+        )
+        firestoreRepository.addReminder(vehicleId, reminder)
+    }
+
 
     fun getCurrentUserId(): String? = auth.currentUser?.uid
 
