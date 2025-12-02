@@ -264,4 +264,25 @@ class VehicleViewModel @Inject constructor(
     fun clearForm() {
         _formState.value = VehicleFormState()
     }
+
+    // --- REFACTORED: UPDATE REMINDER ---
+    fun updateReminder(vehicleId: String, reminderId: String, title: String, dueDate: Long) {
+        viewModelScope.launch {
+            val updates = mapOf(
+                "title" to title,
+                "dueDate" to dueDate
+            )
+            firestoreRepository.updateReminder(vehicleId, reminderId, updates)
+        }
+    }
+
+    // --- REFACTORED: DELETE REMINDER ---
+    fun deleteReminder(vehicleId: String, reminderId: String) {
+        viewModelScope.launch {
+            firestoreRepository.deleteReminder(vehicleId, reminderId)
+        }
+    }
+
+
+
 }

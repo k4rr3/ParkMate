@@ -108,6 +108,37 @@ class FirestoreRepository @Inject constructor() {
             .document(id)
             .set(reminder.copy(id = id))
     }
+    // --- NEW: UPDATE REMINDER ---
+    suspend fun updateReminder(vehicleId: String, reminderId: String, updates: Map<String, Any>): Boolean {
+        return try {
+            db.collection("vehicles")
+                .document(vehicleId)
+                .collection("reminders")
+                .document(reminderId)
+                .update(updates)
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepo", "Error updating reminder", e)
+            false
+        }
+    }
+
+    // --- NEW: DELETE REMINDER ---
+    suspend fun deleteReminder(vehicleId: String, reminderId: String): Boolean {
+        return try {
+            db.collection("vehicles")
+                .document(vehicleId)
+                .collection("reminders")
+                .document(reminderId)
+                .delete()
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepo", "Error deleting reminder", e)
+            false
+        }
+    }
 
 
     // User Operations
