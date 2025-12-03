@@ -242,5 +242,17 @@
     <string name="reminder_title">Reminder Title</string>
     <string name="add_reminder">Add reminder</string>
     <string name="pick_date">Pick date</string>
+    <string name="edit_reminder">Edit reminder</string>
+    <string name="ok">Ok</string>
+    <string name="are_you_sure_delete_reminder">Are you sure you want to delete the reminder?</string>
+    <string name="confirm_deletion">Delete confirmation</string>
+    <string name="error_field_required">%1$s is required.</string>
+    <string name="error_field_min_length">%1$s must be at least 2 characters.</string>
+    <string name="error_plate_invalid_format">Invalid format (e.g., 1234ABC).</string>
+    <string name="error_year_invalid_format">Must be a 4-digit year.</string>
+    <string name="error_year_invalid">Invalid year.</string>
+    <string name="error_year_range">Year must be between 1900 and %1$d.</string>
+    <string name="error_dgt_label_required">DGT Label is required.</string>
+    <string name="error_dgt_label_invalid">Invalid label. Must be 0, ECO, C, or B.</string>
 
 </resources>

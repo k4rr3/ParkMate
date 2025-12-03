@@ -40,7 +40,6 @@ import com.example.parkmate.viewmodel.VehicleViewModel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -333,96 +332,49 @@ fun ReminderItem(
 @Composable
 fun AddOrEditReminderDialog(
     initialReminder: CarReminder? = null,
-    onDismiss: () -> Unit,
-    onSave: (reminderId: String?, title: String, dueDate: Long) -> Unit,
+    onDismiss: () -> Unit,onSave: (reminderId: String?, title: String, dueDate: Long) -> Unit,
     onDelete: (reminderId: String) -> Unit
 ) {
     val isEditMode = initialReminder != null
-    val dialogTitle = if (isEditMode) "Edit Reminder" else stringResource(R.string.add_reminder)
-
+    var title by remember { mutableStateOf(initialReminder?.title ?: "") }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
-    var title by remember { mutableStateOf(initialReminder?.title ?: "") }
-    val initialDateTime = if (isEditMode) {
-        Instant.ofEpochMilli(initialReminder!!.dueDate).atZone(ZoneId.systemDefault()).toLocalDateTime()
-    } else {
-        LocalDateTime.now()
-    }
-    var selectedDateTime by remember { mutableStateOf<LocalDateTime?>(if(isEditMode) initialDateTime else null) }
-
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-    )
-    val timePickerState = rememberTimePickerState(
-        initialHour = initialDateTime.hour,
-        initialMinute = initialDateTime.minute,
-        is24Hour = true
-    )
-
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDatePicker = false
-                    showTimePicker = true
-                }) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
-            }
-        ) { DatePicker(state = datePickerState) }
+    // State for the selected date and time. Default to now if creating.
+    var selectedDateTime by remember {
+        mutableStateOf(
+            initialReminder?.let {
+                Instant.ofEpochMilli(it.dueDate).atZone(ZoneId.systemDefault()).toLocalDateTime()
+            } ?: LocalDateTime.now()
+        )
     }
 
-    if (showTimePicker) {
-        TimePickerDialog(
-            onDismissRequest = { showTimePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    showTimePicker = false
-                    val selectedDate = datePickerState.selectedDateMillis?.let {
-                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                    }
-                    if (selectedDate != null) {
-                        val selectedTime = java.time.LocalTime.of(timePickerState.hour, timePickerState.minute)
-                        selectedDateTime = LocalDateTime.of(selectedDate, selectedTime)
-                    }
-                }) { Text("OK") }
-            },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } }
-        ) {
-            TimePicker(state = timePickerState, layoutType = TimePickerLayoutType.Vertical)
-        }
-    }
-
+    // --- Main Dialog ---
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(dialogTitle) },
+        title = { Text(if (isEditMode) stringResource(R.string.edit_reminder) else stringResource(R.string.add_reminder)) },
         text = {
             Column {
+                // Title field
                 ValidatedTextField(
                     label = stringResource(R.string.reminder_title),
                     value = title,
                     onValueChange = { title = it }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedButton(
-                    onClick = { showDatePicker = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    val buttonText = selectedDateTime?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'at' HH:mm"))
-                        ?: stringResource(R.string.pick_date)
-                    Text(text = buttonText)
-                }
+                // Use our new DateTimePicker composable
+                DateTimePicker(
+                    initialDateTime = selectedDateTime,
+                    onDateTimeSelected = { newDateTime ->
+                        selectedDateTime = newDateTime
+                    }
+                )
             }
         },
         confirmButton = {
             TextButton(
-                enabled = title.isNotBlank() && selectedDateTime != null,
+                enabled = title.isNotBlank(), // Simplified check
                 onClick = {
-                    val finalTimestamp = selectedDateTime!!.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    val finalTimestamp = selectedDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                     onSave(initialReminder?.id, title, finalTimestamp)
                 }
             ) { Text(stringResource(R.string.save)) }
@@ -431,7 +383,7 @@ fun AddOrEditReminderDialog(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isEditMode) {
                     TextButton(onClick = { showDeleteConfirmDialog = true }) {
-                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                     }
                 }
                 TextButton(onClick = onDismiss) {
@@ -441,28 +393,111 @@ fun AddOrEditReminderDialog(
         }
     )
 
+    // --- Delete Confirmation Dialog ---
     if (showDeleteConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text("Confirm Deletion") },
-            text = { Text("Are you sure you want to delete this reminder?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteConfirmDialog = false
-                        onDelete(initialReminder!!.id)
-                        onDismiss() // Close the main dialog after deletion
-                    }
-                ) { Text("Delete", color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text("Cancel")
-                }
+        ConfirmDeleteDialog(
+            onDismiss = { showDeleteConfirmDialog = false },
+            onConfirm = {
+                onDelete(initialReminder!!.id)
+                showDeleteConfirmDialog = false
+                onDismiss() // Close the main dialog
             }
         )
     }
 }
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateTimePicker(
+    initialDateTime: LocalDateTime,
+    onDateTimeSelected: (LocalDateTime) -> Unit
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    )
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialDateTime.hour,
+        initialMinute = initialDateTime.minute,
+        is24Hour = true
+    )
+
+    // --- Show the Date Picker Dialog ---
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDatePicker = false
+                    showTimePicker = true // Chain to show time picker next
+                }) { Text(stringResource(R.string.ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel)) }
+            }
+        ) { DatePicker(state = datePickerState) }
+    }
+
+    // --- Show the Time Picker Dialog ---
+    if (showTimePicker) {
+        TimePickerDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showTimePicker = false
+                    // When confirmed, construct the final LocalDateTime and send it back
+                    val selectedDate = datePickerState.selectedDateMillis?.let {
+                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                    }
+                    if (selectedDate != null) {
+                        val selectedTime = java.time.LocalTime.of(timePickerState.hour, timePickerState.minute)
+                        onDateTimeSelected(LocalDateTime.of(selectedDate, selectedTime))
+                    }
+                }) { Text(stringResource(R.string.ok)) }
+            },
+            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.cancel)) } }
+        ) {
+            TimePicker(state = timePickerState, layoutType = TimePickerLayoutType.Vertical)
+        }
+    }
+
+    // --- The button that starts the process ---
+    OutlinedButton(
+        onClick = { showDatePicker = true },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        val buttonText = initialDateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'at' HH:mm"))
+        Text(text = buttonText)
+    }
+}
+
+
+@Composable
+fun ConfirmDeleteDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {    AlertDialog(
+    onDismissRequest = onDismiss,
+    title = { Text(stringResource(R.string.confirm_deletion)) },
+    text = { Text(stringResource(R.string.are_you_sure_delete_reminder)) },
+    confirmButton = {
+        TextButton(onClick = onConfirm) {
+            Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+        }
+    },
+    dismissButton = {
+        TextButton(onClick = onDismiss) {
+            Text(stringResource(R.string.cancel))
+        }
+    }
+)
+}
+
+
 @Composable
 fun CarInfoCard(vehicle: Vehicle, onEditClick: (Vehicle) -> Unit) {
     Card(

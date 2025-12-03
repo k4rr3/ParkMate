@@ -1,10 +1,8 @@
 package com.example.parkmate.viewmodel
 
-import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.parkmate.data.models.CarReminder
-import com.example.parkmate.data.models.ReminderStatus
 import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.data.repository.FirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
@@ -12,8 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
+import com.example.parkmate.R
 
 
 data class VehicleDetailsUiState(
@@ -195,12 +193,12 @@ class VehicleViewModel @Inject constructor(
         return if (!plate.matches(plateRegex)) "Invalid format (e.g., 1234ABC)" else null
     }
 
-    private fun validateYear(year: String): String? {
-        if (year.isBlank()) return "Year is required."
-        if (!year.matches(yearRegex)) return "Must be a 4-digit year."
-        val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
-        val intYear = year.toIntOrNull() ?: return "Invalid year."
-        return if (intYear < 1900 || intYear > currentYear) "Year must be between 1900 and $currentYear" else null
+    private fun validateYear(year: String): Int? {
+        if (year.isBlank()) return R.string.error_year_invalid_format
+        if (!year.matches(yearRegex)) return R.string.error_year_invalid_format
+        val currentYear = java.util.Calendar.getInstance()[java.util.Calendar.YEAR]
+        val intYear = year.toIntOrNull() ?: return R.string.error_year_invalid
+        return if (intYear < 1900 || intYear > currentYear) R.string.error_year_range else null
     }
 
     private fun validateGeneralText(text: String, fieldName: String): String? {
