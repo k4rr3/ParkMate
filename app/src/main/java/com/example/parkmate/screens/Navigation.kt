@@ -1,6 +1,8 @@
 package com.example.parkmate.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.SnackbarHostState
@@ -19,6 +21,7 @@ import com.example.parkmate.ui.screens.AdminScreen
 import com.example.parkmate.ui.theme.LanguageViewModel
 import com.example.parkmate.ui.theme.ThemeViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission")
 @Composable
 fun Navigation(
@@ -56,12 +59,13 @@ fun Navigation(
         }
 
         composable(
-            route = Screen.CarDetailsScreen.route + "/{vehicleId}"
-        ) { backStackEntry ->
-            val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
-            CarDetailsScreenWrapper(vehicleId = vehicleId,navController)
+            route = "${Screen.CarDetailsScreen.route}/{vehicleId}",
+            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
+        ) { backStackEntry ->    val vehicleId = backStackEntry.arguments?.getString("vehicleId")
+            if (vehicleId != null) {
+                CarDetailsScreen(vehicleId = vehicleId, navController = navController)
+            }
         }
-
         composable(route = Screen.MenuScreen.route) {
             MenuScreen(navController = navController)
         }

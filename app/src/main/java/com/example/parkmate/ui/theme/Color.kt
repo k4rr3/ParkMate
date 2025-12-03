@@ -41,3 +41,11 @@ val DarkRed = Color(0xFFEF5350)
 val DarkPurple = Color(0xFFCE93D8)
 val DarkCarListIcon = Color(0xFFFFB74D)
 val DarkLightBlue = Color(0xFF1A3C6D)
+
+// Dark Theme Status Colors
+val DarkGreenContainer = Color(0xFF2E4B32)  // Container for "Soon"
+val DarkGreenContent = Color(0xFFA5D6A7)   // Content for "Soon"
+val DarkOrangeContainer = Color(0xFF5A3A1B) // Container for "Pending"
+val DarkOrangeContent = Color(0xFFFFCC80)  // Content for "Pending"
+val DarkRedContainer = Color(0xFF5D1F1E)    // Container for "Overdue"
+val DarkRedContent = Color(0xFFEF9A9A)    // Content

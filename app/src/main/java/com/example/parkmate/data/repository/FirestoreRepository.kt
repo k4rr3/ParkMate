@@ -9,6 +9,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -79,6 +80,65 @@ class FirestoreRepository @Inject constructor() {
             }
     }
 
+    fun getRemindersRealtime(vehicleId: String): Flow<List<CarReminder>> = callbackFlow {
+        val listener = db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else {
+                    val list = snapshot!!.toObjects(CarReminder::class.java)
+                    trySend(list)
+                }
+            }
+
+        awaitClose { listener.remove() }
+    }
+
+    fun addReminder(vehicleId: String, reminder: CarReminder) {
+        val id = db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .document().id
+
+        db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .document(id)
+            .set(reminder.copy(id = id))
+    }
+    // --- NEW: UPDATE REMINDER ---
+    suspend fun updateReminder(vehicleId: String, reminderId: String, updates: Map<String, Any>): Boolean {
+        return try {
+            db.collection("vehicles")
+                .document(vehicleId)
+                .collection("reminders")
+                .document(reminderId)
+                .update(updates)
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepo", "Error updating reminder", e)
+            false
+        }
+    }
+
+    // --- NEW: DELETE REMINDER ---
+    suspend fun deleteReminder(vehicleId: String, reminderId: String): Boolean {
+        return try {
+            db.collection("vehicles")
+                .document(vehicleId)
+                .collection("reminders")
+                .document(reminderId)
+                .delete()
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepo", "Error deleting reminder", e)
+            false
+        }
+    }
 
 
     // User Operations
@@ -156,16 +216,27 @@ class FirestoreRepository @Inject constructor() {
             null
         }
     }
-    fun getVehicleRealtime(vehicleId: String, onUpdate: (Vehicle?) -> Unit) {
-        vehiclesCollection.document(vehicleId)
+
+    // ADD THIS NEW, CORRECT FUNCTION
+    fun getVehicleRealtime(vehicleId: String): Flow<Vehicle?> = callbackFlow {
+        val listener = vehiclesCollection.document(vehicleId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    onUpdate(null)
+                    // This will close the flow and be caught by the ViewModel
+                    close(error)
                     return@addSnapshotListener
                 }
-                val vehicle = snapshot?.toObject(Vehicle::class.java)?.copy(id = snapshot?.id ?: "")
-                onUpdate(vehicle)
+                if (snapshot != null && snapshot.exists()) {
+                    val vehicle = snapshot.toObject(Vehicle::class.java)?.copy(id = snapshot.id)
+                    // Send the updated vehicle data to the collector
+                    trySend(vehicle)
+                } else {
+                    // Send null if the document was deleted or doesn't exist
+                    trySend(null)
+                }
             }
+        // This ensures the listener is removed when the ViewModel's scope is cancelled
+        awaitClose { listener.remove() }
     }
 
 
