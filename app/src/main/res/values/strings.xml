@@ -214,9 +214,9 @@
     <string name="no_vehicles_yet_add_one">No vehicles yet. Add one!</string>
     <string name="view_details">View Details</string>
     <string name="privacy_security"><![CDATA[Privacy & Security]]></string>
-    <string name="english">English</string>
-    <string name="spanish">Español</string>
-    <string name="catalan">Català</string>
+    <string name="english" translatable="false">English</string>
+    <string name="spanish" translatable="false">Español</string>
+    <string name="catalan" translatable="false">Català</string>
     <string name="changes_saved">Changes saved!</string>
     <string name="error_saving_changes">Error saving changes</string>
     <string name="invalid_email">Invalid Email</string>
