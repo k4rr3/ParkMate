@@ -9,10 +9,18 @@ import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.data.repository.FirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
+
+
+data class VehicleDetailsUiState(
+    val isLoading: Boolean = true,
+    val vehicle: Vehicle? = null,
+    val error: String? = null
+)
 
 @HiltViewModel
 class VehicleViewModel @Inject constructor(
@@ -24,6 +32,11 @@ class VehicleViewModel @Inject constructor(
     private val _reminders = MutableStateFlow<List<CarReminder>>(emptyList())
     private val _vehicles = MutableStateFlow<List<Vehicle>>(emptyList())
     val vehicles: StateFlow<List<Vehicle>> = _vehicles.asStateFlow()
+    private val _vehicleUiState = MutableStateFlow(VehicleDetailsUiState())
+    val vehicleUiState: StateFlow<VehicleDetailsUiState> = _vehicleUiState.asStateFlow()
+
+    private var vehicleListenerJob: Job? = null
+
     val reminders = _reminders.asStateFlow()
 
 
@@ -63,14 +76,28 @@ class VehicleViewModel @Inject constructor(
      * 🔹 Returns a Flow<Vehicle?> for a specific vehicle ID.
      * This allows Compose to observe changes reactively.
      */
-    fun getVehicleByIdRealtime(vehicleId: String): StateFlow<Vehicle?> {
-        val state = MutableStateFlow<Vehicle?>(null)
-        firestoreRepository.getVehicleRealtime(vehicleId) { vehicle ->
-            state.value = vehicle
-        }
-        return state
-    }
 
+    fun loadVehicleDetails(vehicleId: String) {
+        if (vehicleListenerJob?.isActive == true) return
+        vehicleListenerJob?.cancel()
+
+        vehicleListenerJob = viewModelScope.launch {
+            firestoreRepository.getVehicleRealtime(vehicleId) // This now calls the correct Flow-based function
+                .onStart {
+                    _vehicleUiState.value = VehicleDetailsUiState(isLoading = true)
+                }
+                .catch { cause: Throwable ->
+                    if (cause is Exception) {
+                        _vehicleUiState.value = VehicleDetailsUiState(isLoading = false, error = cause.message)
+                    } else {
+                        throw cause
+                    }
+                }
+                .collect { updatedVehicle ->
+                    _vehicleUiState.value = VehicleDetailsUiState(isLoading = false, vehicle = updatedVehicle)
+                }
+        }
+    }
 
     /**
      * 🔹 Add a new vehicle to Firestore and link it to the current user.

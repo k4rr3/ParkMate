@@ -216,16 +216,27 @@ class FirestoreRepository @Inject constructor() {
             null
         }
     }
-    fun getVehicleRealtime(vehicleId: String, onUpdate: (Vehicle?) -> Unit) {
-        vehiclesCollection.document(vehicleId)
+
+    // ADD THIS NEW, CORRECT FUNCTION
+    fun getVehicleRealtime(vehicleId: String): Flow<Vehicle?> = callbackFlow {
+        val listener = vehiclesCollection.document(vehicleId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    onUpdate(null)
+                    // This will close the flow and be caught by the ViewModel
+                    close(error)
                     return@addSnapshotListener
                 }
-                val vehicle = snapshot?.toObject(Vehicle::class.java)?.copy(id = snapshot?.id ?: "")
-                onUpdate(vehicle)
+                if (snapshot != null && snapshot.exists()) {
+                    val vehicle = snapshot.toObject(Vehicle::class.java)?.copy(id = snapshot.id)
+                    // Send the updated vehicle data to the collector
+                    trySend(vehicle)
+                } else {
+                    // Send null if the document was deleted or doesn't exist
+                    trySend(null)
+                }
             }
+        // This ensures the listener is removed when the ViewModel's scope is cancelled
+        awaitClose { listener.remove() }
     }
 
 

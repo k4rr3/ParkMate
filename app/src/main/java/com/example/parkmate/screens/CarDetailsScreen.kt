@@ -54,25 +54,79 @@ fun CarDetailsScreen(
     viewModel: VehicleViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
-    // --- State for Dialogs ---
+
+
+    LaunchedEffect(vehicleId) {
+        viewModel.loadVehicleDetails(vehicleId)
+    }
+
+    // Assign the current vehicle to a local variable to avoid race conditions
+    val uiState by viewModel.vehicleUiState.collectAsState()
+    when {
+        // State 1: Show a loading indicator
+        uiState.isLoading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        // State 2: Show an error message
+        uiState.error != null -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Error: ${uiState.error}")
+            }
+        }
+
+        // State 3: Show content if vehicle is not null
+        uiState.vehicle != null -> {
+            val currentVehicle = uiState.vehicle!!
+            LaunchedEffect(key1 = currentVehicle.id) {
+                viewModel.loadReminders(currentVehicle.id)
+            }
+            // Pass the loaded vehicle and other states to a content composable
+            CarDetailsContent(
+                vehicle = uiState.vehicle!!, // We know it's not null here
+                navController = navController,
+                viewModel = viewModel,
+                themeViewModel = themeViewModel
+            )
+        }
+
+        // State 4: Handle case where loading is done but vehicle is not found
+        else -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Vehicle not found")
+            }
+        }
+    }
+}
+
+@Composable
+fun CarDetailsContent(
+    vehicle: Vehicle,
+    navController: NavHostController,
+    viewModel: VehicleViewModel,
+    themeViewModel: ThemeViewModel
+) {
     var showEditCarDialog by remember { mutableStateOf(false) }
     var showAddReminderDialog by remember { mutableStateOf(false) }
     var showEditReminderDialog by remember { mutableStateOf(false) }
     var selectedReminder by remember { mutableStateOf<CarReminder?>(null) }
 
-    val vehicle by viewModel.getVehicleByIdRealtime(vehicleId).collectAsState(initial = null)
     val reminders by viewModel.reminders.collectAsState()
-
-    LaunchedEffect(vehicleId) {
-        viewModel.loadReminders(vehicleId)
-    }
-
-    // Assign the current vehicle to a local variable to avoid race conditions
-    val currentVehicle = vehicle
 
     Scaffold { paddingValues ->
         // Use the local variable for the check. This is safer.
-        if (currentVehicle != null) {
+        if (vehicle != null) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -80,7 +134,7 @@ fun CarDetailsScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
-                    CarInfoCard(currentVehicle) {
+                    CarInfoCard(vehicle) {
                         viewModel.loadVehicleIntoForm(it)
                         showEditCarDialog = true
                     }
@@ -111,7 +165,7 @@ fun CarDetailsScreen(
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     DeleteButton(
-                        vehicleId = currentVehicle.id,
+                        vehicleId = vehicle.id,
                         navController = navController,
                         viewModel = viewModel
                     )
@@ -136,7 +190,7 @@ fun CarDetailsScreen(
         AddOrEditReminderDialog(
             onDismiss = { showAddReminderDialog = false },
             onSave = { _, title, dueDate -> // reminderId is null for new reminders
-                viewModel.addReminder(vehicleId, title, dueDate)
+                viewModel.addReminder(vehicle.id, title, dueDate)
                 showAddReminderDialog = false
             },
             onDelete = { /* This will not be called in add mode */ }
@@ -152,22 +206,22 @@ fun CarDetailsScreen(
             },
             onSave = { reminderId, title, dueDate ->
                 if (reminderId != null) {
-                    viewModel.updateReminder(vehicleId, reminderId, title, dueDate)
+                    viewModel.updateReminder(vehicle.id, reminderId, title, dueDate)
                 }
                 showEditReminderDialog = false
                 selectedReminder = null
             },
             onDelete = { reminderId ->
-                viewModel.deleteReminder(vehicleId, reminderId)
+                viewModel.deleteReminder(vehicle.id, reminderId)
             }
         )
     }
 
     // ** ANOTHER FIX IS HERE **
     // Ensure currentVehicle is not null before trying to show the EditCarDialog
-    if (showEditCarDialog && currentVehicle != null) {
+    if (showEditCarDialog && vehicle != null) {
         EditCarDialog(
-            vehicleId = currentVehicle.id,
+            vehicleId = vehicle.id,
             viewModel = viewModel,
             onDismiss = {
                 showEditCarDialog = false
@@ -176,6 +230,7 @@ fun CarDetailsScreen(
         )
     }
 }
+
 
 //
 // The rest of the file (ReminderItem, AddOrEditReminderDialog, etc.)
