@@ -18,15 +18,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.parkmate.data.models.InterestPoint // <-- NUEVA IMPORTACIÓN
+import com.example.parkmate.data.models.InterestPoint
 import com.example.parkmate.data.models.Zone
 import com.example.parkmate.screens.rememberPermissionManager
-import com.example.parkmate.ui.components.InterestPointDetailCard // <-- NUEVA IMPORTACIÓN
+import com.example.parkmate.ui.components.InterestPointDetailCard
 import com.example.parkmate.ui.components.MapView
 import com.example.parkmate.ui.components.SearchBar
 import com.example.parkmate.ui.components.ZoneDetailCard
-import com.example.parkmate.utils.calculateCentroid // Cambiado desde utils
-import com.example.parkmate.viewmodel.InterestPointViewModel // <-- NUEVA IMPORTACIÓN
+import com.example.parkmate.utils.calculateCentroid
+import com.example.parkmate.viewmodel.InterestPointViewModel
 import com.example.parkmate.viewmodel.ZoneViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -40,18 +40,15 @@ import kotlinx.coroutines.tasks.await
 @SuppressLint("MissingPermission")
 @Composable
 fun MapScreen(
-    // 1. Inyectamos ambos ViewModels
     zoneViewModel: ZoneViewModel = hiltViewModel(),
     interestPointViewModel: InterestPointViewModel = hiltViewModel()
+    // Ya no recibe parámetros de selección inicial
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // 2. Obtenemos los datos de cada ViewModel
     val allZonesFromFirebase by zoneViewModel.zones.collectAsState()
     val allInterestPoints by interestPointViewModel.interestPoints.collectAsState()
-
-    // 3. Combinamos los estados de carga
     val zonesLoading by zoneViewModel.isLoading.collectAsState()
     val pointsLoading by interestPointViewModel.isLoading.collectAsState()
     val isLoading = zonesLoading || pointsLoading
@@ -69,22 +66,11 @@ fun MapScreen(
     val locationPermissionManager = rememberPermissionManager(permission = Manifest.permission.ACCESS_FINE_LOCATION)
     var showParking by remember { mutableStateOf(false) }
     var showGasStations by remember { mutableStateOf(false) }
-
-    // 4. NUEVO ESTADO para el punto de interés seleccionado
     var selectedZone by remember { mutableStateOf<Zone?>(null) }
     var selectedInterestPoint by remember { mutableStateOf<InterestPoint?>(null) }
-
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
-
-    // Función para limpiar selecciones y cerrar el menú
-    val clearSelectionsAndCollapse = {
-        keyboardController?.hide()
-        selectedZone = null
-        selectedInterestPoint = null
-        scope.launch { sheetState.collapse() }
-    }
 
     LaunchedEffect(searchQuery, allZonesFromFirebase) {
         if (searchQuery.isNotBlank()) {
@@ -96,11 +82,14 @@ fun MapScreen(
         }
     }
 
-    LaunchedEffect(sheetState.isCollapsed) {
-        if (sheetState.isCollapsed) {
-            selectedZone = null
-            selectedInterestPoint = null
-        }
+    LaunchedEffect(sheetState) {
+        snapshotFlow { sheetState.isCollapsed }
+            .collect { isCollapsed ->
+                if (isCollapsed) {
+                    selectedZone = null
+                    selectedInterestPoint = null
+                }
+            }
     }
 
     LaunchedEffect(Unit) {
@@ -122,7 +111,6 @@ fun MapScreen(
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
-        // 5. Contenido del BottomSheet ahora es DINÁMICO
         sheetContent = {
             if (selectedZone != null) {
                 ZoneDetailCard(
@@ -145,7 +133,7 @@ fun MapScreen(
                     }
                 )
             } else {
-                Spacer(modifier = Modifier.height(1.dp)) // Contenido vacío para evitar errores
+                Spacer(modifier = Modifier.height(1.dp))
             }
         },
         sheetPeekHeight = if (selectedZone != null || selectedInterestPoint != null) 200.dp else 0.dp,
@@ -159,28 +147,23 @@ fun MapScreen(
             MapView(
                 cameraPositionState = cameraPositionState,
                 zones = if (showParking) allZonesFromFirebase else emptyList(),
-                // 6. Pasamos la lista de gasolineras filtrada
-                gasStations = if (showGasStations) {
-                    allInterestPoints.filter { it.type == "GasStation" }
-                } else {
-                    emptyList()
-                },
+                gasStations = if (showGasStations) allInterestPoints.filter { it.type == "GasStation" } else emptyList(),
                 hasLocationPermission = locationPermissionManager.hasPermission,
-                // 7. Implementamos los callbacks de clic
                 onZoneClick = { zone ->
                     keyboardController?.hide()
-                    selectedInterestPoint = null // Limpia la otra selección
+                    selectedInterestPoint = null
                     selectedZone = zone
                     scope.launch { sheetState.expand() }
                 },
                 onGasStationClick = { station ->
                     keyboardController?.hide()
-                    selectedZone = null // Limpia la otra selección
+                    selectedZone = null
                     selectedInterestPoint = station
                     scope.launch { sheetState.expand() }
                 },
                 onMapClick = {
-                    clearSelectionsAndCollapse() // Usa la función de limpieza
+                    keyboardController?.hide()
+                    scope.launch { sheetState.collapse() }
                 }
             )
 
@@ -202,7 +185,7 @@ fun MapScreen(
                         keyboardController?.hide()
                         searchQuery = zone.name
                         showSuggestions = false
-                        selectedInterestPoint = null // Limpia la otra selección
+                        selectedInterestPoint = null
                         selectedZone = zone
                         scope.launch {
                             val centroid = calculateCentroid(zone.vector)
