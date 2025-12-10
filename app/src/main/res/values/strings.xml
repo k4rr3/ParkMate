@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">ParkMate</string>
     <string name="title_activity_splash">SplashActivity</string>
     <string name="splash_screen">Splash Screen</string>
@@ -74,9 +74,7 @@
 
     <string name="already_have_account">Already have an account? Login</string>
     <string name="reset_password">Reset password</string>
-    <string name="password_reset_email_sent">
-     We have sent you an email to reset your password.\n\nCheck your &quot;Spam&quot; folder if you do not see the email in your main inbox.
-    </string>
+    <string name="password_reset_email_sent">We have sent you an email to reset your password.\n\nCheck your &quot;Spam&quot; folder if you do not see the email.</string>
     <string name="success_message">Success</string>
     <string name="user_not_found_or_disabled">User not found or disabled</string>
 
@@ -101,6 +99,7 @@
     <string name="too_many_requests">Too many requests</string>
     <string name="invalid_credentials">The credentials are wrong</string>
     <string name="wrong_credentials">Incorrect password</string>
+
     <string name="car_details_navbar">Car Profile</string>
     <string name="map_navbar">Map</string>
     <string name="menu_screen">Menu Screen</string>
@@ -155,7 +154,6 @@
     <string name="driving_status">Driving</string>
     <string name="expired_status">Expired</string>
     <string name="add_new_vehicle">Add New Vehicle</string>
-    <string name="Name_label">Name</string>
     <string name="model_label">Model</string>
     <string name="license_plate_label">Licence Plate</string>
     <string name="description_label">Description</string>
@@ -171,7 +169,6 @@
     <string name="car_not_parked">Car not parked</string>
     <string name="edit_vehicle">Edit Vehicle</string>
     <string name="Brand_Model_and_Plate_cannot_be_empty">Brand, Model, and Plate cannot be empty</string>
-    <string name="save">Save</string>
     <string name="failed_to_save_changes">Failed to save changes:</string>
     <string name="delete_vehicle">Delete Vehicle</string>
     <string name="normal_users">Users</string>
@@ -179,18 +176,19 @@
     <string name="delete_user">Delete User</string>
     <string name="toggle_premium">Toggle premium</string>
     <string name="unknown_user">Unknown user</string>
+
     <string name="about_us_title">About Us</string>
     <string name="about_us_heading">About Us</string>
-    <string name="about_us_description">ParkMate is a smart parking management app that helps drivers find, book, and manage parking spaces effortlessly. \n Our goal is to make urban mobility smoother and smarter through technology.</string>
+    <string name="about_us_description">ParkMate is a smart parking management app that helps drivers...</string>
     <string name="about_us_mission_title">Our Mission</string>
-    <string name="about_us_mission_description">"We aim to simplify the parking experience for users and improve the efficiency of parking spaces for cities and businesses."</string>
+    <string name="about_us_mission_description">"We aim to simplify the parking experience..."</string>
     <string name="terms_and_conditions_title"><![CDATA[Terms & Conditions]]></string>
     <string name="terms_heading">Terms and Conditions</string>
-    <string name="terms_intro">" By using ParkMate, you agree to the following terms and conditions. \n    Please read them carefully before continuing to use our services."</string>
+    <string name="terms_intro">"By using ParkMate, you agree..."</string>
     <string name="terms_usage_title">1. App Usage</string>
-    <string name="terms_usage_description">You agree to use this app responsibly and in compliance with all applicable local and national laws. \n    Misuse of the app or fraudulent activity may result in account suspension.\n</string>
+    <string name="terms_usage_description">You agree to use this app responsibly...</string>
     <string name="terms_privacy_title">2. Privacy Policy</string>
-    <string name="terms_privacy_description">We respect your privacy and protect your personal data in accordance with our Privacy Policy. \n    We do not share your data with third parties without your consent.</string>
+    <string name="terms_privacy_description">We respect your privacy...</string>
     <string name="about_us_navbar">About Us</string>
     <string name="terms_and_conditions_navbar"><![CDATA[Terms & Conditions]]></string>
     <string name="terms_and_conditions"><![CDATA[Terms & Conditions]]></string>
@@ -198,11 +196,13 @@
     <string name="sign_in_with_google_now">Sign in with Google</string>
     <string name="continue_with_google">Continue with Google</string>
     <string name="add_the_page_in_appscafold_file">Add the page in AppScafold file</string>
+
     <string name="policy_number">Policy Number</string>
     <string name="coverage">Coverage</string>
     <string name="monthly_remium">Monthly Premium</string>
     <string name="view_policy">View Policy</string>
     <string name="visit_mapfre">Visit Mapfre</string>
+
     <string name="name">Name</string>
     <string name="brand">Brand</string>
     <string name="model">Model</string>
@@ -210,7 +210,7 @@
     <string name="plate">Licence Plate Number</string>
     <string name="fuel_type">Fuel Type</string>
     <string name="dgt_label">DGT Label</string>
-    <string name="add">Add</string>
+
     <string name="no_vehicles_yet_add_one">No vehicles yet. Add one!</string>
     <string name="view_details">View Details</string>
     <string name="privacy_security"><![CDATA[Privacy & Security]]></string>
@@ -223,7 +223,7 @@
     <string name="invalid_phone">Invalid Phone</string>
     <string name="are_you_sure_you_want_to_delete">Are you sure you want to delete</string>
     <string name="this_action_cannot_be_undone">This action cannot be undone.</string>
-    <string name="delete">Delete</string>
+
     <string name="admin_user">Admin User</string>
     <string name="standard_user">Standard User</string>
     <string name="assign_admin_role">Assign Admin Role</string>
@@ -232,6 +232,7 @@
     <string name="are_you_sure_you_want_to_remove_admin_role_from">Are you sure you want to remove admin rights from</string>
     <string name="assign_admin">Assign Admin</string>
     <string name="remove_admin">Remove Admin</string>
+    <string name="save">Save</string>
     <string name="pending">Pending</string>
     <string name="soon">Soon</string>
     <string name="overdue">Overdue</string>
@@ -255,4 +256,42 @@
     <string name="error_dgt_label_required">DGT Label is required.</string>
     <string name="error_dgt_label_invalid">Invalid label. Must be 0, ECO, C, or B.</string>
 
+    <string name="book_official_revision">Book oficial revision</string>
+    <string name="annual_revision">Annual Revision</string>
+    <string name="annual_revision_description">Book your official car inspection</string>
+
+    <string name="car_insurance">Car Insurance</string>
+    <string name="no_insurance_data">No data provided</string>
+    <string name="edit_insurance_details">Edit insurance details</string>
+    <string name="policy_number_label">Policy Number: %1$s</string>
+    <string name="expires_on_label">Expires on: %1$s</string>
+    <string name="visit_provider_website">Visit Provider Website</string>
+    <string name="add_insurance_details">Add Insurance Details</string>
+    <string name="insurance_provider">Insurance Provider</string>
+    <string name="policy_url">Policy URL</string>
+    <string name="add_insurance">Add Insurance</string>
+    <string name="edit_insurance">Edit Insurance</string>
+    <string name="visit_policy">Visit Policy</string>
+    <string name="no_insurance_added">No insurance information added.</string>
+    <string name="delete">Delete</string>
+    <string name="visit_policy_webpage">Visit Policy webpage</string>
+
+    <string-array name="insurance_companies_array" tools:ignore="ExtraTranslation">
+        <item>Allianz</item>
+        <item>Axa</item>
+        <item>Generali</item>
+        <item>Mapfre</item>
+        <item>Zurich</item>
+        <item>Other</item>
+    </string-array>
+
+    <!-- Corresponding URLs for the companies -->
+    <string-array name="insurance_company_urls_array" tools:ignore="ExtraTranslation">
+        <item>https://www.allianz.com</item>
+        <item>https://www.axa.com</item>
+        <item>https://www.generali.com</item>
+        <item>https://www.mapfre.com</item>
+        <item>https://www.zurich.com</item>
+        <item></item> <!-- Empty for "Other" -->
+    </string-array>
 </resources>

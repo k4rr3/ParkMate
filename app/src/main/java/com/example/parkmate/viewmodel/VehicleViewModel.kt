@@ -38,6 +38,24 @@ class VehicleViewModel @Inject constructor(
     val reminders = _reminders.asStateFlow()
 
 
+    fun updateInsurance(vehicleId: String, provider: String) {
+        viewModelScope.launch {
+            val updates = mapOf(
+                "insuranceProvider" to provider,
+            )
+            firestoreRepository.updateVehicle(vehicleId, updates)
+        }
+    }
+
+    fun deleteInsurance(vehicleId: String) {
+        viewModelScope.launch {
+            val updates = mapOf(
+                "insuranceProvider" to "null",
+            )
+            firestoreRepository.updateVehicle(vehicleId, updates)
+        }
+    }
+
 
     fun loadReminders(vehicleId: String) {
         viewModelScope.launch {

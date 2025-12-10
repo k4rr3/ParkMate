@@ -261,7 +261,7 @@ fun AddCarForm(
                         },
                         enabled = formState.isFormValid
                     ) {
-                        Text(stringResource(R.string.add))
+                        Text(stringResource(R.string.add_button))
                     }
                 }
             }

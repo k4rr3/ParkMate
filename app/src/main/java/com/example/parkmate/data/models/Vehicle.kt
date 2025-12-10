@@ -17,7 +17,9 @@ data class Vehicle(
     val fuelType: String = "",
     val dgtLabel: String = "",
     val parkingLocation: GeoPoint = GeoPoint(0.0, 0.0),
-    val maintenance: Maintenance? = null
+    val maintenance: Maintenance? = null,
+    val insuranceProvider: String? = null,
+    val insurancePolicyUrl: String? = null
 )
 
 data class Maintenance(
