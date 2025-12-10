@@ -584,7 +584,7 @@ fun EditCarDialog(
                 ValidatedTextField("Name", formState.name, viewModel::onNameChange, formState.nameError)
                 ValidatedTextField("Brand", formState.brand, viewModel::onBrandChange, formState.brandError)
                 ValidatedTextField("Model", formState.model, viewModel::onModelChange, formState.modelError)
-                ValidatedTextField("Year", formState.year, viewModel::onYearChange, formState.yearError, KeyboardType.Number)
+                ValidatedTextField("Year", formState.year, viewModel::onYearChange, formState.yearError?.let { stringResource(id = it) }, KeyboardType.Number)
                 ValidatedTextField("Plate", formState.plate, viewModel::onPlateChange, formState.plateError)
                 ValidatedTextField("Fuel Type", formState.fuelType, viewModel::onFuelTypeChange)
                 ValidatedTextField("DGT Label", formState.dgtLabel, viewModel::onDgtLabelChange)

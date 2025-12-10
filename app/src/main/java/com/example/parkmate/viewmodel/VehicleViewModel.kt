@@ -175,7 +175,7 @@ class VehicleViewModel @Inject constructor(
         val nameError: String? = null,
         val brandError: String? = null,
         val modelError: String? = null,
-        val yearError: String? = null,
+        val yearError: Int? = null,
         val plateError: String? = null,
         val dgtLabelError: String? = null,
         val isFormValid: Boolean = false
