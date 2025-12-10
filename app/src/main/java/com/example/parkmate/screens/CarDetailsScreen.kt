@@ -15,13 +15,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,6 +48,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
+import kotlin.text.isNullOrBlank
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,6 +101,7 @@ fun CarDetailsScreen(
                 viewModel = viewModel,
                 themeViewModel = themeViewModel
             )
+
         }
 
         // State 4: Handle case where loading is done but vehicle is not found
@@ -108,6 +115,8 @@ fun CarDetailsScreen(
         }
     }
 }
+
+
 
 @Composable
 fun CarDetailsContent(
@@ -157,7 +166,15 @@ fun CarDetailsContent(
                 }
 
                 item { AnnualRevisionCard() }
-                item { CarInsuranceCard() }
+                item { InsuranceCard(
+                    provider = vehicle.insuranceProvider,
+                    onSave = { provider ->
+                        viewModel.updateInsurance(vehicle.id, provider)
+                    },
+                    onDelete = {
+                        viewModel.deleteInsurance(vehicle.id)
+                    }
+                )}
 
                 // ** THE FIX IS HERE **
                 // Only add the DeleteButton to the list if the vehicle is not null
@@ -661,100 +678,202 @@ fun DeleteButton(vehicleId: String, viewModel: VehicleViewModel, navController: 
 
 @Composable
 fun AnnualRevisionCard() {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
-        Column(modifier = Modifier
+    // 1. Get the UriHandler to open links
+    val uriHandler = LocalUriHandler.current
+    val revisionUrl = "https://www.applusiteuve.com/ca-es/"
+
+    Card(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)) {
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.CalendarMonth, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                Column(modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)) {
-                    Text("Annual Revision", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("Book your official car inspection", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                Icon(
+                    Icons.Outlined.CalendarMonth,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 16.dp)
+                ) {
+                    Text(stringResource(R.string.annual_revision), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        stringResource(R.string.annual_revision_description),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("Next Revision", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("March 2024", fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("Status", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Pending", fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Orange)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { /* TODO */ }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-                Icon(Icons.Outlined.Edit, null, modifier = Modifier.size(16.dp))
-                Text("Book Official Revision", modifier = Modifier.padding(start = 8.dp))
+            Button(
+                onClick = { uriHandler.openUri(revisionUrl) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(
+                    Icons.Outlined.Edit,
+                    contentDescription = null, // Decorative icon
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = stringResource(R.string.book_official_revision),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
         }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InsuranceCard(
+    provider: String?,
+    onSave: (String) -> Unit,
+    onDelete: () -> Unit
+) {
+    var showEditDialog by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+
+    val companyNames = stringArrayResource(id = R.array.insurance_companies_array)
+    val companyUrls = stringArrayResource(id = R.array.insurance_company_urls_array)
+    val companyUrlMap = remember { companyNames.zip(companyUrls).toMap() }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = stringResource(R.string.car_insurance), style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (provider.isNullOrBlank()) {
+                // Show "Add Insurance" button
+                Button(onClick = { showEditDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.add_insurance))
+                }
+            } else {
+                // Show insurance details
+                Text(text = stringResource(R.string.insurance_provider), style = MaterialTheme.typography.bodySmall)
+                Text(text = provider, style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val urlToVisit = companyUrlMap[provider]
+                    if (!urlToVisit.isNullOrBlank()) {
+                        Button(onClick = { uriHandler.openUri(urlToVisit) }) {
+                            Text(stringResource(R.string.visit_policy_webpage))
+                        }
+                    }
+
+                    Row {
+                        IconButton(onClick = { showEditDialog = true }) {
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_insurance))
+                        }
+                        IconButton(onClick = onDelete) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showEditDialog) {
+        InsuranceEditDialog(
+            initialProvider = provider,
+            onDismiss = { showEditDialog = false },
+            onSave = { newProvider ->
+                onSave(newProvider)
+                showEditDialog = false
+            },
+            companyList = companyNames
+        )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CarInsuranceCard() {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(LightGreen), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Security, null, tint = Green, modifier = Modifier.size(20.dp))
-                }
-                Column(modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)) {
-                    Text("Car Insurance", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("Mapfre Insurance Company", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+fun InsuranceEditDialog(
+    initialProvider: String?,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+    companyList: Array<String>
+) {
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+    var selectedProvider by remember { mutableStateOf(initialProvider ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(if (initialProvider == null) R.string.add_insurance else R.string.edit_insurance)) },
+        text = {
+            Column {
+                ExposedDropdownMenuBox(
+                    expanded = isDropdownExpanded,
+                    onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = selectedProvider,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.insurance_provider)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = isDropdownExpanded,
+                        onDismissRequest = { isDropdownExpanded = false }
+                    ) {
+                        companyList.forEach { company ->
+                            DropdownMenuItem(
+                                text = { Text(company) },
+                                onClick = {
+                                    selectedProvider = company
+                                    isDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text(stringResource(R.string.policy_number), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("POL-2024-X3-001", fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(stringResource(R.string.coverage), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
-                    Text("Comprehensive", fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(selectedProvider) },
+                enabled = selectedProvider.isNotBlank()
+            ) {
+                Text(stringResource(R.string.save))
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text(stringResource(R.string.expires), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Dec 31, 2024", fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(stringResource(R.string.monthly_remium), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
-                    Text("€89.99", fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                OutlinedButton(onClick = { /* TODO */ }, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Description, null, modifier = Modifier.size(16.dp))
-                    Text(stringResource(R.string.view_policy), modifier = Modifier.padding(start = 8.dp))
-                }
-                Spacer(modifier = Modifier.size(8.dp))
-                Button(onClick = { /* TODO */ }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Green)) {
-                    Icon(Icons.Outlined.Edit, null, modifier = Modifier.size(16.dp))
-                    Text(stringResource(R.string.visit_mapfre), modifier = Modifier.padding(start = 8.dp))
-                }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
-    }
+    )
 }
+
+
+
 @Composable
 private fun TimePickerDialog(
     onDismissRequest: () -> Unit,
@@ -826,3 +945,4 @@ fun formatDate(date: Any?): String {
         ""
     }
 }
+
