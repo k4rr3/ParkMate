@@ -14,14 +14,15 @@ import com.airbnb.lottie.compose.*
 import com.example.parkmate.R
 import com.example.parkmate.auth.AuthViewModel
 import com.example.parkmate.screens.Screen
-import com.example.parkmate.ui.theme.UserPreference
+import com.example.parkmate.data.preferences.UserPreferences
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 
 @Composable
-fun SplashScreen(navController: NavController) {
+fun SplashScreen(navController: NavController, ) {
     val context = LocalContext.current
     val authViewModel: AuthViewModel = hiltViewModel()
+    val userPreferences: UserPreferences = hiltViewModel<AuthViewModel>().userPreferences
 
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.animation_lkxz2cg2))
     val progress by animateLottieCompositionAsState(composition)
@@ -39,7 +40,7 @@ fun SplashScreen(navController: NavController) {
         navigationHandled = true
 
         // Check if user has logged in before + Firebase session is active
-        val hasLoggedInBefore = UserPreference.isUserLoggedInBefore(context).first()
+        val hasLoggedInBefore = userPreferences.isUserLoggedInBefore().first()
         val isFirebaseUserLoggedIn = authViewModel.isUserLoggedIn()
 
         if (hasLoggedInBefore && isFirebaseUserLoggedIn) {

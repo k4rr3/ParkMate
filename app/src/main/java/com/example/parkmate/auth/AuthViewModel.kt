@@ -33,11 +33,12 @@ import java.security.MessageDigest
 import java.util.UUID
 import javax.inject.Inject
 import com.example.parkmate.R
-import com.example.parkmate.ui.theme.UserPreference
+import com.example.parkmate.data.preferences.UserPreferences
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val firestoreRepository: FirestoreRepository,
+    val userPreferences: UserPreferences,
     @ApplicationContext private val context: Context  // Added @ApplicationContext
 ) : ViewModel() {
     companion object {
@@ -169,7 +170,7 @@ class AuthViewModel @Inject constructor(
 
                             // ← ADD THIS
                             viewModelScope.launch {
-                                UserPreference.setUserHasLoggedIn(context, true)
+                                userPreferences.setUserHasLoggedIn(true)
                             }
                         }
                         // User data will be loaded from Firestore in other viewmodels
@@ -247,7 +248,7 @@ class AuthViewModel @Inject constructor(
                     successMessage = context.getString(R.string.sign_in_with_google)
 
                     viewModelScope.launch {
-                        UserPreference.setUserHasLoggedIn(context, true)
+                        userPreferences.setUserHasLoggedIn(true)
                     }
                     Log.d(TAG, "Google sign-in successful")
                 }
@@ -296,7 +297,7 @@ class AuthViewModel @Inject constructor(
                 auth.signOut()
                 val clearRequest = ClearCredentialStateRequest()
                 credentialManager.clearCredentialState(clearRequest)
-                UserPreference.setUserHasLoggedIn(context, false)
+                userPreferences.setUserHasLoggedIn(false)
                 successMessage = context.getString(R.string.signed_out_successfully)
                 Log.d(TAG, "Signed out successfully")
             } catch (e: Exception) {
