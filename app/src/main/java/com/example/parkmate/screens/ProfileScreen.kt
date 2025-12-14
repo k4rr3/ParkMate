@@ -1,5 +1,6 @@
 package com.example.parkmate.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -139,28 +140,10 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+
         // Premium Upgrade Section
         SectionCard(title = stringResource(R.string.banking_payment)) {
             var isLoading by remember { mutableStateOf(false) }
-
-            // Compose-safe Stripe launcher
-            val paymentLauncher = rememberLauncherForActivityResult(
-                contract = PaymentSheetContract()
-            ) { result ->
-                isLoading = false
-                when (result) {
-                    is PaymentSheetResult.Completed -> {
-                        Toast.makeText(context, "Welcome to Premium! (Test Mode Success)", Toast.LENGTH_LONG).show()
-                        // TODO: Update user to premium in Firestore
-                    }
-                    is PaymentSheetResult.Canceled -> {
-                        Toast.makeText(context, "Payment canceled", Toast.LENGTH_SHORT).show()
-                    }
-                    is PaymentSheetResult.Failed -> {
-                        Toast.makeText(context, "Payment failed: ${result.error.message}", Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
 
             Card(
                 modifier = Modifier
@@ -190,25 +173,13 @@ fun ProfileScreen(
 
             Button(
                 onClick = {
-                    if (isLoading) return@Button
                     isLoading = true
-
-                    // Test client secret from Stripe (works in test mode without backend)
-                    val testClientSecret = "pi_3OQx7yLkdIwHu7ix0qhtF4nP_secret_uV2BuqTt8oLy7i8S2eT0t6o8K"
-
-                    val args = PaymentSheetContract.Args.createPaymentIntentArgs(
-                        clientSecret = testClientSecret,
-                        config = PaymentSheet.Configuration(
-                            merchantDisplayName = "ParkMate",
-                            googlePay = PaymentSheet.GooglePayConfiguration(
-                                environment = PaymentSheet.GooglePayConfiguration.Environment.Test,
-                                countryCode = "US",
-                                currencyCode = "USD"
-                            )
-                        )
-                    )
-
-                    paymentLauncher.launch(args)
+                    // Open the Stripe-hosted payment link in browser
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
+                    intent.data = android.net.Uri.parse("https://buy.stripe.com/test_5kQ5kD7xib923qi4yN9IQ00")
+                    context.startActivity(intent)
+                    isLoading = false  // No need to wait for result in test mode
+                    Toast.makeText(context, "Opening payment page...", Toast.LENGTH_SHORT).show()
                 },
                 enabled = !isLoading,
                 modifier = Modifier

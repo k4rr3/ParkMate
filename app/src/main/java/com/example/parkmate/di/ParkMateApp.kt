@@ -14,7 +14,7 @@ class ParkMateApp : Application() {
     override fun onCreate() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
-        PaymentConfiguration.init(applicationContext, "pk_test_YOUR_PUBLISHABLE_KEY")
+        PaymentConfiguration.init(applicationContext, "pk_test_51Sdv4SDwFRfhTuoiU1Awc0FrJ2rSoOd915mTugiSPNSvdMTiSEgxLPfhekBoRW9yjbl9udzCB7RdKNSpanb7U7VT005BZiTysC")
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
