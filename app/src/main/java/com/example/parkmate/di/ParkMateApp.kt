@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import com.google.firebase.FirebaseApp
+import com.stripe.android.PaymentConfiguration
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
@@ -13,6 +14,7 @@ class ParkMateApp : Application() {
     override fun onCreate() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
+        PaymentConfiguration.init(applicationContext, "pk_test_51Sdv4SDwFRfhTuoiU1Awc0FrJ2rSoOd915mTugiSPNSvdMTiSEgxLPfhekBoRW9yjbl9udzCB7RdKNSpanb7U7VT005BZiTysC")
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
