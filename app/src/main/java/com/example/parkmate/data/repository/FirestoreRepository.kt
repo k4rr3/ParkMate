@@ -1,4 +1,3 @@
-// data/repository/FirestoreRepository.kt
 package com.example.parkmate.data.repository
 
 import android.util.Log
@@ -317,7 +316,7 @@ class FirestoreRepository @Inject constructor() {
             }
     }
 
-    // Zone Operations
+    // --- START: ZONE OPERATIONS ---
     suspend fun getZones(): List<Zone> {
         return try {
             val querySnapshot = zonesCollection.get().await()
@@ -328,6 +327,37 @@ class FirestoreRepository @Inject constructor() {
             emptyList()
         }
     }
+
+    suspend fun addZone(zone: Zone): String {
+        return try {
+            val documentRef = if (zone.id.isNotEmpty()) {
+                zonesCollection.document(zone.id).set(zone).await()
+                zonesCollection.document(zone.id)
+            } else {
+                zonesCollection.add(zone).await()
+            }
+            documentRef.id
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun updateZone(zoneId: String, updates: Map<String, Any>) {
+        try {
+            zonesCollection.document(zoneId).update(updates).await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun deleteZone(zoneId: String) {
+        try {
+            zonesCollection.document(zoneId).delete().await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+    // --- END: ZONE OPERATIONS ---
 
     // Ticket Operations
     suspend fun createTicket(ticket: Ticket): String {

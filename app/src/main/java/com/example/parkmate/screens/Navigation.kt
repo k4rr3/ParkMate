@@ -9,14 +9,13 @@ import androidx.compose.material.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.example.parkmate.auth.LoginScreen
 import com.example.parkmate.auth.SignUpScreen
 import com.example.parkmate.feature_splash_screen.presentation.SplashScreen
-import com.example.parkmate.ui.MapScreen
+// 1. --- IMPORTAMOS LA NUEVA PANTALLA CONTENEDORA ---
+import com.example.parkmate.ui.MapAndListScreen
 import com.example.parkmate.ui.screens.AdminScreen
 import com.example.parkmate.ui.theme.LanguageViewModel
 import com.example.parkmate.ui.theme.ThemeViewModel
@@ -78,9 +77,12 @@ fun Navigation(
         composable(route = Screen.CarListScreen.route){
             CarListScreen(navController = navController)
         }
+
         composable(route= Screen.MapScreen.route){
-            MapScreen()
+            MapAndListScreen()
         }
+        // ------------------------------------
+
         composable(route= Screen.AdminScreen.route){
             AdminScreen()
         }

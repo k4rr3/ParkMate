@@ -1,87 +1,86 @@
 package com.example.parkmate.ui.components
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.example.parkmate.mock.ParkingSpot
-import com.example.parkmate.utils.rememberDeviceLocation // <-- Importa la nueva función
-import com.google.android.gms.maps.model.CameraPosition
+import androidx.compose.ui.graphics.Color
+import com.example.parkmate.data.models.InterestPoint // <-- NUEVA IMPORTACIÓN
+import com.example.parkmate.data.models.Zone
+import com.example.parkmate.ui.theme.Purple
+import com.google.android.gms.maps.model.BitmapDescriptorFactory // <-- NUEVA IMPORTACIÓN
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 
 @Composable
 fun MapView(
-    parkingSpots: List<ParkingSpot>,
-    hasLocationPermission: Boolean, // <-- CAMBIO 1: Recibe el estado del permiso.
-    onSpotClick: (ParkingSpot) -> Unit,
-    onMapClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    // La lógica de permisos (popups, etc.) ya no está aquí, se gestiona desde fuera.
-    Box(modifier = modifier.fillMaxSize()) {
-        FullMapView(
-            parkingSpots = parkingSpots,
-            hasLocationPermission = hasLocationPermission, // <-- Pasa el estado hacia abajo.
-            onCircleClick = onSpotClick,
-            onMapClick = onMapClick
-        )
-    }
-}
-
-@Composable
-private fun FullMapView(
-    parkingSpots: List<ParkingSpot>,
-    hasLocationPermission: Boolean, // <-- CAMBIO 2: Recibe el estado aquí también.
-    onCircleClick: (ParkingSpot) -> Unit,
+    cameraPositionState: CameraPositionState,
+    zones: List<Zone>,
+    gasStations: List<InterestPoint>, // <-- NUEVO PARÁMETRO
+    hasLocationPermission: Boolean,
+    onZoneClick: (Zone) -> Unit,
+    onGasStationClick: (InterestPoint) -> Unit, // <-- NUEVO CALLBACK
     onMapClick: () -> Unit
 ) {
-    // --- LÓGICA DE POSICIÓN DE LA CÁMARA ---
-    val lleidaDefault = LatLng(41.6175, 0.6200)
-
-    // 1. Obtiene la ubicación del dispositivo (será null si no hay permiso o no se encuentra).
-    val deviceLocation = rememberDeviceLocation(hasPermission = hasLocationPermission)
-
-    // 2. Decide el punto de inicio: la ubicación del usuario si está disponible, si no, Lleida.
-    val startLocation = deviceLocation ?: lleidaDefault
-
-    // 3. Decide el nivel de zoom: más cercano (16f) si es la ubicación del usuario, más alejado (14f) si es la por defecto.
-    val startZoom = if (deviceLocation != null) 16f else 14f
-
-    // 4. Crea y recuerda el estado de la cámara con los valores decididos.
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(startLocation, startZoom)
+    val mapProperties by remember(hasLocationPermission) {
+        mutableStateOf(MapProperties(isMyLocationEnabled = hasLocationPermission))
     }
 
-    // --- MAPA ---
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
-        uiSettings = MapUiSettings(
-            zoomControlsEnabled = true,
-            myLocationButtonEnabled = hasLocationPermission // El botón "Mi Ubicación" solo aparece si hay permiso.
-        ),
-        properties = MapProperties(
-            isMyLocationEnabled = hasLocationPermission // El punto azul de "Mi Ubicación" solo se muestra si hay permiso.
-        ),
+        properties = mapProperties,
         onMapClick = { onMapClick() }
     ) {
-        parkingSpots.forEach { spot ->
-            Circle(
-                center = LatLng(spot.latitude, spot.longitude),
-                radius = 50.0,
-                fillColor = spot.color.copy(alpha = 0.2f),
-                strokeWidth = 0f,
-                tag = spot,
-                clickable = true,
+        // Lógica de Zonas (sin cambios)
+        zones.forEach { zone ->
+            if (zone.vector.size >= 3) {
+                Polygon(
+                    points = zone.vector.map { LatLng(it.latitude, it.longitude) },
+                    clickable = true,
+                    onClick = { onZoneClick(zone) },
+                    strokeColor = getZoneStrokeColor(zone.name),
+                    strokeWidth = 6f,
+                    fillColor = getZoneFillColor(zone.name)
+                )
+            }
+        }
+
+        // NUEVA LÓGICA para dibujar los marcadores de gasolineras
+        gasStations.forEach { station ->
+            Marker(
+                state = MarkerState(position = LatLng(station.location.latitude, station.location.longitude)),
+                title = station.name,
+                snippet = "Gasolinera",
+                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED), // Icono rojo
                 onClick = {
-                    onCircleClick(it.tag as ParkingSpot)
+                    onGasStationClick(station) // Llama al nuevo callback
+                    true // Indica que el clic ha sido gestionado
                 }
             )
         }
+    }
+}
+
+// Funciones de color (sin cambios, excepto el color del borde que tenías mal)
+private fun getZoneFillColor(zoneName: String): Color {
+    return when {
+        zoneName.contains("Azul", ignoreCase = true) -> Color(0x6687CEEB)
+        zoneName.contains("Verde", ignoreCase = true) -> Color(0x6698FB98)
+        zoneName.contains("Carga", ignoreCase = true) -> Color(0x66FFD700)
+        zoneName.contains("Gratuito", ignoreCase = true) -> Color(0x66B0B0B0)
+        else -> Purple.copy(alpha = 0.4f)
+    }
+}
+
+private fun getZoneStrokeColor(zoneName: String): Color {
+    return when {
+        zoneName.contains("Azul", ignoreCase = true) -> Color(0xFF0066CC)
+        zoneName.contains("Verde", ignoreCase = true) -> Color(0xFF228B22)
+        zoneName.contains("Carga", ignoreCase = true) -> Color(0xFFFFA500)
+        zoneName.contains("Gratuito", ignoreCase = true) -> Color(0xFF696969)
+        else -> Purple // El borde debe ser sólido, no transparente. Corregido.
     }
 }
