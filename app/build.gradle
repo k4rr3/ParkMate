@@ -166,4 +166,10 @@ dependencies {
     kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.48")
 
 
+
+    implementation 'com.stripe:stripe-android:20.48.2'
+
+    // For backend communication
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 }

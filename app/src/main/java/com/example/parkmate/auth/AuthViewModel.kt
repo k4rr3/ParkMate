@@ -33,15 +33,19 @@ import java.security.MessageDigest
 import java.util.UUID
 import javax.inject.Inject
 import com.example.parkmate.R
+import com.example.parkmate.data.preferences.UserPreferences
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val firestoreRepository: FirestoreRepository,
+    val userPreferences: UserPreferences,
     @ApplicationContext private val context: Context  // Added @ApplicationContext
 ) : ViewModel() {
     companion object {
         private const val TAG = "AuthViewModel"
     }
+
+
 
     var email by mutableStateOf("")
         private set
@@ -161,6 +165,14 @@ class AuthViewModel @Inject constructor(
                 if (user != null) {
                     if (user.isEmailVerified) {
                         successMessage = context.getString(R.string.login_successful)
+                        if (user != null && user.isEmailVerified) {
+                            successMessage = context.getString(R.string.login_successful)
+
+                            // ← ADD THIS
+                            viewModelScope.launch {
+                                userPreferences.setUserHasLoggedIn(true)
+                            }
+                        }
                         // User data will be loaded from Firestore in other viewmodels
                     } else {
                         errorMessage = context.getString(R.string.please_verify_email)
@@ -234,6 +246,10 @@ class AuthViewModel @Inject constructor(
                     }
 
                     successMessage = context.getString(R.string.sign_in_with_google)
+
+                    viewModelScope.launch {
+                        userPreferences.setUserHasLoggedIn(true)
+                    }
                     Log.d(TAG, "Google sign-in successful")
                 }
             } catch (e: Exception) {
@@ -281,6 +297,7 @@ class AuthViewModel @Inject constructor(
                 auth.signOut()
                 val clearRequest = ClearCredentialStateRequest()
                 credentialManager.clearCredentialState(clearRequest)
+                userPreferences.setUserHasLoggedIn(false)
                 successMessage = context.getString(R.string.signed_out_successfully)
                 Log.d(TAG, "Signed out successfully")
             } catch (e: Exception) {
@@ -389,4 +406,6 @@ class AuthViewModel @Inject constructor(
             isLoading = false
         }
     }
+
+
 }
