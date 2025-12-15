@@ -1,10 +1,8 @@
 package com.example.parkmate.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
 // --- LIGHT COLOR SCHEME ---
 private val LightColorScheme = lightColorScheme(

@@ -1,8 +1,6 @@
 package com.example.parkmate.ui.theme
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.parkmate.data.preferences.UserPreferences
