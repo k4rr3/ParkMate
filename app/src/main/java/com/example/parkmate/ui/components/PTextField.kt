@@ -1,6 +1,5 @@
 package com.example.parkmate.ui.components
 
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
@@ -12,30 +11,21 @@ fun PTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    label: @Composable (() -> Unit)? = null,
-    placeholder: @Composable (() -> Unit)? = null,
-    singleLine: Boolean = false,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    enabled: Boolean = true,
-    readOnly: Boolean = false,
-    isError: Boolean = false,
-    supportingText: @Composable (() -> Unit)? = null,
-    maxLines: Int = Int.MAX_VALUE
+    config: PTextFieldConfig = PTextFieldConfig()
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
-        label = label,
-        placeholder = placeholder,
-        singleLine = singleLine,
-        keyboardOptions = keyboardOptions,
-        trailingIcon = trailingIcon,
-        enabled = enabled,
-        readOnly = readOnly,
-        isError = isError,
-        supportingText = supportingText,
-        maxLines = maxLines
+        label = config.label,
+        placeholder = config.placeholder,
+        singleLine = config.singleLine,
+        keyboardOptions = config.keyboardOptions,
+        trailingIcon = config.trailingIcon,
+        enabled = config.enabled,
+        readOnly = config.readOnly,
+        isError = config.isError,
+        supportingText = config.supportingText,
+        maxLines = config.maxLines
     )
 }

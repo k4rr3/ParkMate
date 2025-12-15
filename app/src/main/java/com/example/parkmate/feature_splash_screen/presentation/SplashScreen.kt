@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.first
 
 @Composable
 fun SplashScreen(navController: NavController, ) {
-    val context = LocalContext.current
     val authViewModel: AuthViewModel = hiltViewModel()
     val userPreferences: UserPreferences = hiltViewModel<AuthViewModel>().userPreferences
 

@@ -131,7 +131,7 @@ fun CarDetailsContent(
 
     Scaffold { paddingValues ->
         // Use the local variable for the check. This is safer.
-        if (vehicle != null) {
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -184,15 +184,7 @@ fun CarDetailsContent(
                     )
                 }
             }
-        } else {
-            // Show a loading indicator while the vehicle is being fetched
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
+
     }
 
     // --- Dialog Management ---
@@ -232,7 +224,7 @@ fun CarDetailsContent(
 
     // ** ANOTHER FIX IS HERE **
     // Ensure currentVehicle is not null before trying to show the EditCarDialog
-    if (showEditCarDialog && vehicle != null) {
+    if (showEditCarDialog) {
         EditCarDialog(
             vehicleId = vehicle.id,
             viewModel = viewModel,

@@ -275,6 +275,7 @@
     <string name="no_insurance_added">No insurance information added.</string>
     <string name="delete">Delete</string>
     <string name="visit_policy_webpage">Visit Policy webpage</string>
+    <string name="enabled">Enabled</string>
 
     <string-array name="insurance_companies_array" tools:ignore="ExtraTranslation">
         <item>Allianz</item>

@@ -41,7 +41,7 @@ fun Navigation(
         composable(route = Screen.LoginScreen.route) {
             LoginScreen(
                 navController = navController,
-                onLoginSuccess = {
+                    onLoginSuccess = {
                     navController.navigate(Screen.MapScreen.route) {
                         // Clear back stack to prevent returning to LoginScreen or SplashScreen
                         popUpTo(Screen.SplashScreen.route) { inclusive = true }

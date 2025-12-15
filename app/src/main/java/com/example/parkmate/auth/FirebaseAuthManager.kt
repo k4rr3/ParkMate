@@ -2,15 +2,13 @@ package com.example.parkmate.auth
 
 
 import android.content.Context
-import android.util.Log
-import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -48,52 +46,59 @@ class FirebaseAuthManager(private val context: Context) {
     }
 
     // Email/Password Login
-    suspend fun loginWithEmail(email: String, password: String): Result<Unit> {
+    suspend fun loginWithEmail(
+        email: String,
+        password: String
+    ): Result<Unit> {
         if (email.isBlank() || password.isBlank()) {
-            return Result.failure(IllegalArgumentException("Email and password must not be empty"))
+            return Result.failure(
+                IllegalArgumentException("Email and password must not be empty")
+            )
         }
-        return suspendCoroutine { continuation ->
-            auth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener {
-                    val user = auth.currentUser
-                    if (user?.isEmailVerified == true) {
-                        continuation.resume(Result.success(Unit))
-                    } else {
-                        continuation.resume(Result.failure(Exception("EMAIL_NOT_VERIFIED")))
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, "Login failed: ${e.javaClass.simpleName}, errorCode: ${if (e is FirebaseAuthException) e.errorCode else "N/A"}, message: ${e.message}")
-                    when (e) {
-                        is FirebaseAuthInvalidUserException -> {
-                            continuation.resume(Result.failure(Exception("USER_NOT_FOUND")))
-                        }
-                        is FirebaseAuthInvalidCredentialsException -> {
-                            when (e.errorCode) {
-                                "ERROR_INVALID_EMAIL" -> {
-                                    continuation.resume(Result.failure(Exception("INVALID_EMAIL")))
-                                }
-                                "ERROR_WRONG_PASSWORD" -> {
-                                    continuation.resume(Result.failure(Exception("WRONG_PASSWORD")))
-                                }
-                                else -> {
-                                    continuation.resume(Result.failure(Exception("INVALID_CREDENTIALS")))
-                                }
-                            }
-                        }
-                        is FirebaseAuthUserCollisionException -> {
-                            continuation.resume(Result.failure(Exception("EMAIL_ALREADY_IN_USE")))
-                        }
-                        is FirebaseAuthWeakPasswordException -> {
-                            continuation.resume(Result.failure(Exception("WEAK_PASSWORD")))
-                        }
-                        else -> {
-                            continuation.resume(Result.failure(Exception("LOGIN_FAILED: ${e.message}")))
-                        }
-                    }
-                }
+
+        return runCatching {
+            val result = auth
+                .signInWithEmailAndPassword(email, password)
+                .await()
+
+            val user = result.user
+                ?: error("USER_NOT_FOUND")
+
+            if (!user.isEmailVerified) {
+                error("EMAIL_NOT_VERIFIED")
+            }
+        }.mapCatching {
+            Unit
+        }.recoverCatching { throwable ->
+            throw mapAuthException(throwable)
         }
     }
+    private fun mapAuthException(throwable: Throwable): Exception {
+        return when (throwable) {
+            is FirebaseAuthInvalidUserException ->
+                Exception("USER_NOT_FOUND")
+
+            is FirebaseAuthInvalidCredentialsException ->
+                when (throwable.errorCode) {
+                    "ERROR_INVALID_EMAIL" ->
+                        Exception("INVALID_EMAIL")
+                    "ERROR_WRONG_PASSWORD" ->
+                        Exception("WRONG_PASSWORD")
+                    else ->
+                        Exception("INVALID_CREDENTIALS")
+                }
+
+            is FirebaseAuthUserCollisionException ->
+                Exception("EMAIL_ALREADY_IN_USE")
+
+            is FirebaseAuthWeakPasswordException ->
+                Exception("WEAK_PASSWORD")
+
+            else ->
+                Exception(throwable.message ?: "LOGIN_FAILED")
+        }
+    }
+
 
     // Send Password Reset Email
     suspend fun sendPasswordResetEmail(email: String): Result<Unit> {

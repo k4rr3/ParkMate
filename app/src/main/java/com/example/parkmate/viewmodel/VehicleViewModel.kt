@@ -129,7 +129,7 @@ class VehicleViewModel @Inject constructor(
                     // 2️⃣ Link vehicle to user
                     val user = firestoreRepository.getUser(uid)
                     if (user != null) {
-                        val updatedVehicleIds = (user.vehicleID ?: emptyList()) + vehicleId
+                        val updatedVehicleIds = user.vehicleID + vehicleId
                         firestoreRepository.updateUser(uid, mapOf("vehicleID" to updatedVehicleIds))
                     }
 
@@ -169,7 +169,7 @@ class VehicleViewModel @Inject constructor(
                     val user = firestoreRepository.getUser(uid)
                     if (user != null) {
                         val updatedVehicleIds =
-                            (user.vehicleID ?: emptyList()).filter { it != vehicleId }
+                            user.vehicleID.filter { it != vehicleId }
                         firestoreRepository.updateUser(uid, mapOf("vehicleID" to updatedVehicleIds))
                     }
 
