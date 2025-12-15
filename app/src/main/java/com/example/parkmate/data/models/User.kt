@@ -11,7 +11,8 @@ data class User(
     val vehicleID: List<String> = emptyList(),
     val paymentMethod: Map<String, PaymentCard> = emptyMap(),
     val createdAt: Timestamp = Timestamp.now(),
-    val admin: Boolean = false
+    val admin: Boolean = false,
+    var credits: Int = 0
 )
 
 data class PaymentCard(

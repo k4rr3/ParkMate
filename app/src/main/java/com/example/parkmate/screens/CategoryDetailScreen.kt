@@ -2,6 +2,7 @@ package com.example.parkmate.ui
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,17 +12,21 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.parkmate.data.models.InterestPoint
 import com.example.parkmate.data.models.Zone
 import com.example.parkmate.ui.components.InterestPointDetailCard
 import com.example.parkmate.ui.components.ZoneDetailCard
 import com.example.parkmate.utils.calculateCentroid
 import com.example.parkmate.utils.calculateDistance
+import com.example.parkmate.viewmodel.ProfileViewModel
 import com.google.android.gms.maps.model.LatLng
 import java.text.DecimalFormat
 
@@ -96,9 +101,12 @@ fun CategoryDetailScreen(
 @Composable
 private fun ItemDetailView(
     modifier: Modifier = Modifier,
-    selectedItem: Any
+    selectedItem: Any,
+    profileViewModel : ProfileViewModel = hiltViewModel()
 ) {
+
     val context = LocalContext.current
+    val credits by profileViewModel.credits.collectAsState()
     Box(
         modifier = modifier
             .padding(16.dp)
@@ -107,6 +115,7 @@ private fun ItemDetailView(
         when (selectedItem) {
             is Zone -> ZoneDetailCard(
                 zone = selectedItem,
+                userCredits = credits,
                 onNavigateClick = {
                     val destination = calculateCentroid(selectedItem.vector)
                     val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")

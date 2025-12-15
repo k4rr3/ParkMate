@@ -36,6 +36,7 @@ import com.stripe.android.paymentsheet.PaymentSheetContract
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
@@ -141,61 +142,86 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
 
-        // Premium Upgrade Section
-        SectionCard(title = stringResource(R.string.banking_payment)) {
+// "Comprar créditos"
+        SectionCard(title = "Comprar créditos") {
             var isLoading by remember { mutableStateOf(false) }
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.CreditCard, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text("ParkMate Premium", fontWeight = FontWeight.Bold)
-                            Text("$9.99/month • No ads • Priority spots", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Paquetes de créditos con su precio y link correspondiente
+            val creditPackages = listOf(
+                Triple(10, "4.99 €", "https://buy.stripe.com/test_fZu5kDg3Ocd68KC1mB9IQ01"),
+                Triple(25, "9.99 €", "https://buy.stripe.com/test_bJeeVdeZKdhaaSK5CR9IQ02"),
+                Triple(50, "17.99 €", "https://buy.stripe.com/test_3cIcN518U3GAd0Sd5j9IQ03")
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                creditPackages.forEach { (credits, priceText, paymentLink) ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text(
+                                    text = "$credits créditos",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                                Text(
+                                    text = priceText,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (credits == 50) {
+                                    Text(
+                                        text = "¡Más popular!",
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+
+                            Button(
+                                onClick = {
+                                    isLoading = true
+                                    // Abrir el link específico de este paquete
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
+                                    intent.data = android.net.Uri.parse(paymentLink)
+                                    context.startActivity(intent)
+
+                                    // En modo test: añadir créditos inmediatamente (simulando éxito)
+                                    viewModel.addCredits(credits) {}
+                                    isLoading = false
+                                },
+                                enabled = !isLoading
+                            ) {
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text("Comprar", fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
                     }
-                    Icon(Icons.Outlined.ChevronRight, contentDescription = null)
                 }
-            }
 
-            Button(
-                onClick = {
-                    isLoading = true
-                    // Open the Stripe-hosted payment link in browser
-                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
-                    intent.data = android.net.Uri.parse("https://buy.stripe.com/test_5kQ5kD7xib923qi4yN9IQ00")
-                    context.startActivity(intent)
-                    isLoading = false  // No need to wait for result in test mode
-                    Toast.makeText(context, "Opening payment page...", Toast.LENGTH_SHORT).show()
-                },
-                enabled = !isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 3.dp
-                    )
-                } else {
-                    Text("Upgrade to Premium • $9.99", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
+                // Información adicional
+                Text(
+                    text = "Los créditos te permiten pagar parkings, zonas reguladas y gasolineras directamente desde la app.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
         }
 

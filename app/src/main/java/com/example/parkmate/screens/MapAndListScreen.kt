@@ -25,6 +25,7 @@ import com.example.parkmate.data.models.Zone
 import com.example.parkmate.viewmodel.InterestPointViewModel
 import com.example.parkmate.viewmodel.ZoneViewModel
 import com.google.android.gms.maps.model.LatLng
+import com.example.parkmate.viewmodel.ProfileViewModel
 
 private enum class ViewMode { MAP, LIST }
 
@@ -34,7 +35,8 @@ private enum class ViewMode { MAP, LIST }
 @Composable
 fun MapAndListScreen(
     zoneViewModel: ZoneViewModel = hiltViewModel(),
-    interestPointViewModel: InterestPointViewModel = hiltViewModel()
+    interestPointViewModel: InterestPointViewModel = hiltViewModel(),
+    profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     var currentView by remember { mutableStateOf(ViewMode.MAP) }
     val listNavController = rememberNavController()
@@ -54,7 +56,8 @@ fun MapAndListScreen(
                     ViewMode.MAP -> {
                         MapScreen(
                             zoneViewModel = zoneViewModel,
-                            interestPointViewModel = interestPointViewModel
+                            interestPointViewModel = interestPointViewModel,
+                            profileViewModel = profileViewModel
                             // Los parámetros que daban error se han eliminado.
                         )
                     }

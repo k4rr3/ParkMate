@@ -8,6 +8,7 @@ import com.example.parkmate.data.models.User
 import com.example.parkmate.data.preferences.UserPreferences
 import com.example.parkmate.data.repository.FirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -17,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repo: FirestoreRepository,
-    private val userPreferences: UserPreferences  // Now properly injectable
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
@@ -25,6 +26,10 @@ class ProfileViewModel @Inject constructor(
     // Public read-only user state
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user.asStateFlow()
+
+    // Créditos del usuario (nuevo)
+    private val _credits = MutableStateFlow(0)
+    val credits: StateFlow<Int> = _credits.asStateFlow()
 
     // Editable fields
     private val _name = MutableStateFlow("")
@@ -65,6 +70,8 @@ class ProfileViewModel @Inject constructor(
                 _name.value = it.name
                 _email.value = it.email
                 _phone.value = it.phone
+                // Actualizamos los créditos cuando cambia el usuario
+                _credits.value = it.credits ?: 0
             }
         }
     }
@@ -110,11 +117,59 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    // === NUEVAS FUNCIONES PARA CRÉDITOS ===
+
+    /**
+     * Añade créditos al usuario (ej: al comprar premium)
+     * @param amount cantidad de créditos a añadir (ej: 50)
+     */
+    fun addCredits(amount: Int = 50, onComplete: (Boolean) -> Unit = {}) {
+        val uid = auth.currentUser?.uid ?: run {
+            onComplete(false)
+            return
+        }
+
+        viewModelScope.launch {
+            val success = repo.updateUserField(uid, "credits", FieldValue.increment(amount.toLong()))
+            if (success) {
+                // Opcional: recargar usuario para actualizar el flow
+                repo.getUser(uid)?.let { updatedUser ->
+                    _credits.value = updatedUser.credits ?: 0
+                }
+            }
+            onComplete(success)
+        }
+    }
+
+    /**
+     * Gasta una cantidad específica de créditos
+     * @param amount cantidad a restar
+     * @param onResult callback con true si se pudo gastar
+     */
+    fun spendCredits(amount: Int, onResult: (Boolean) -> Unit = {}) {
+        if (_credits.value < amount) {
+            onResult(false)
+            return
+        }
+
+        val uid = auth.currentUser?.uid ?: run {
+            onResult(false)
+            return
+        }
+
+        viewModelScope.launch {
+            val success = repo.updateUserField(uid, "credits", FieldValue.increment(-amount.toLong()))
+            if (success) {
+                _credits.value -= amount
+            }
+            onResult(success)
+        }
+    }
+
     // Sign out
     fun signOut(onSignedOut: () -> Unit = {}) {
         viewModelScope.launch {
             auth.signOut()
-            // Clear the "has logged in ever" flag
             userPreferences.setUserHasLoggedIn(false)
             listener?.remove()
             listener = null
@@ -130,6 +185,4 @@ class ProfileViewModel @Inject constructor(
         listener?.remove()
         super.onCleared()
     }
-
-
 }

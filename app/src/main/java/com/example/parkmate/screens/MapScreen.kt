@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,6 +28,7 @@ import com.example.parkmate.screens.rememberPermissionManager
 import com.example.parkmate.ui.components.*
 import com.example.parkmate.utils.calculateCentroid
 import com.example.parkmate.viewmodel.InterestPointViewModel
+import com.example.parkmate.viewmodel.ProfileViewModel
 import com.example.parkmate.viewmodel.ZoneViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -43,7 +45,8 @@ import kotlinx.coroutines.tasks.await
 @Composable
 fun MapScreen(
     zoneViewModel: ZoneViewModel = hiltViewModel(),
-    interestPointViewModel: InterestPointViewModel = hiltViewModel()
+    interestPointViewModel: InterestPointViewModel = hiltViewModel(),
+    profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -90,7 +93,7 @@ fun MapScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContent = {
-            BottomSheetContent(selectedZone, selectedInterestPoint, context)
+            BottomSheetContent(selectedZone, selectedInterestPoint, context, profileViewModel)
         },
         sheetPeekHeight = if (selectedZone != null || selectedInterestPoint != null) 200.dp else 0.dp,
         sheetGesturesEnabled = selectedZone != null || selectedInterestPoint != null
@@ -227,11 +230,13 @@ fun CenterLocationOnce(
 }
 
 @Composable
-fun BottomSheetContent(selectedZone: Zone?, selectedPoint: InterestPoint?, context: android.content.Context) {
+fun BottomSheetContent(selectedZone: Zone?, selectedPoint: InterestPoint?, context: android.content.Context, profileViewModel: ProfileViewModel) {
+    val credits by profileViewModel.credits.collectAsState()
     when {
         selectedZone != null -> {
             ZoneDetailCard(
                 zone = selectedZone,
+                userCredits = credits,
                 onNavigateClick = {
                     val destination = calculateCentroid(selectedZone.vector)
                     val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
