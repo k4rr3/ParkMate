@@ -60,6 +60,10 @@ fun InterestPointDetailCard(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+
+            // AFEGIR BOTÓ PAGO
+
+
             Button(
                 onClick = onNavigateClick,
                 modifier = Modifier.fillMaxWidth(),

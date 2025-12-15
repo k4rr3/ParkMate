@@ -5,12 +5,13 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.parkmate.auth.LoginScreen
 import com.example.parkmate.auth.SignUpScreen
 import com.example.parkmate.feature_splash_screen.presentation.SplashScreen
@@ -26,7 +27,6 @@ import com.example.parkmate.ui.theme.ThemeViewModel
 fun Navigation(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    snackbarHostState: SnackbarHostState,
     themeViewModel: ThemeViewModel,
     languageViewModel: LanguageViewModel
 ) {
@@ -93,16 +93,5 @@ fun Navigation(
             TermsAndConditionsScreen()
         }
 
-        /* composable(route = Screen.SavedCarSpotsScreen.route) {
-             SavedCarSpotsScreen(navController = navController)
-         }
-
-         composable(route = Screen.SavedParkingSpotsScreen.route) {
-             SavedParkingSpotsScreen(navController = navController)
-         }
-
-         composable(route = Screen.TabLayout.route) {
-             TabLayout(navController = navController)
-         }*/
     }
 }

@@ -38,7 +38,7 @@ fun ParkingSpotDetailCard(spot: ParkingSpot) {
                 text = "Prize: ${spot.price}",
                 style = MaterialTheme.typography.bodyLarge
             )
-            // Aquí puedes añadir más detalles, como botones, imágenes, etc.
+            // AFEGIR BOTÓ PAGO
         }
     }
 }

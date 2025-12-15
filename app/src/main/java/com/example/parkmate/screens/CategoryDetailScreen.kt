@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,23 +25,32 @@ import com.example.parkmate.utils.calculateDistance
 import com.google.android.gms.maps.model.LatLng
 import java.text.DecimalFormat
 
+// DATA CLASS PARA AGRUPAR PARÁMETROS Y REDUCIR SU NÚMERO
+@Immutable
+data class CategoryDetailState(
+    val categoryType: String,
+    val userLocation: LatLng?,
+    val zones: List<Zone>,
+    val interestPoints: List<InterestPoint>
+)
+
+/**
+ * Función principal que ahora actúa como un simple contenedor.
+ * Su complejidad es muy baja.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryDetailScreen(
-    categoryType: String,
-    userLocation: LatLng?,
-    zones: List<Zone>,
-    interestPoints: List<InterestPoint>,
+    state: CategoryDetailState,
     selectedItem: Any?,
     onItemClick: (item: Any) -> Unit,
     onNavigateBack: () -> Unit,
     onClearSelection: () -> Unit
 ) {
-    val context = LocalContext.current
     val title = if (selectedItem != null) {
         "Detalles"
     } else {
-        when (categoryType) {
+        when (state.categoryType) {
             "zones" -> "Zonas de Aparcamiento"
             "gas_stations" -> "Gasolineras"
             else -> "Detalles"
@@ -59,92 +69,117 @@ fun CategoryDetailScreen(
                             onNavigateBack()
                         }
                     }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver atrás"
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver atrás")
                     }
                 }
             )
         }
     ) { innerPadding ->
         if (selectedItem != null) {
-            // --- VISTA DE DETALLE (SECCIÓN CORREGIDA) ---
-            // El Box ahora gestiona el padding exterior de la tarjeta.
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding) // Padding del Scaffold
-                    .padding(16.dp)       // Padding adicional nuestro
-                    .fillMaxSize()
-            ) {
-                when (selectedItem) {
-                    is Zone -> ZoneDetailCard(
-                        // No le pasamos un modifier, usará el suyo por defecto
-                        zone = selectedItem,
-                        onNavigateClick = {
-                            val destination = calculateCentroid(selectedItem.vector)
-                            val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
-                            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).setPackage("com.google.android.apps.maps")
-                            context.startActivity(mapIntent)
-                        }
-                    )
-                    is InterestPoint -> InterestPointDetailCard(
-                        // No le pasamos un modifier, usará el suyo por defecto
-                        point = selectedItem,
-                        onNavigateClick = {
-                            val destination = selectedItem.location
-                            val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
-                            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).setPackage("com.google.android.apps.maps")
-                            context.startActivity(mapIntent)
-                        }
-                    )
-                }
-            }
+            ItemDetailView(
+                modifier = Modifier.padding(innerPadding),
+                selectedItem = selectedItem
+            )
         } else {
-            // --- VISTA DE LISTA (sin cambios) ---
-            val sortedItems = remember(userLocation, zones, interestPoints) {
-                when (categoryType) {
-                    "zones" -> zones.map { zone ->
-                        val centroid = calculateCentroid(zone.vector)
-                        val distance = userLocation?.let {
-                            calculateDistance(it.latitude, it.longitude, centroid.latitude, centroid.longitude)
-                        }
-                        ListItemData(data = zone, name = zone.name, distance = distance)
-                    }.let { if (userLocation != null) it.sortedBy { item -> item.distance } else it }
-
-                    "gas_stations" -> interestPoints
-                        .filter { it.type == "GasStation" }
-                        .map { point ->
-                            val distance = userLocation?.let {
-                                calculateDistance(it.latitude, it.longitude, point.location.latitude, point.location.longitude)
-                            }
-                            ListItemData(data = point, name = point.name, distance = distance)
-                        }.let { if (userLocation != null) it.sortedBy { item -> item.distance } else it }
-
-                    else -> emptyList()
-                }
-            }
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                items(sortedItems) { item ->
-                    ItemCard(
-                        item = item,
-                        onClick = { onItemClick(item.data) }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
+            ItemListView(
+                modifier = Modifier.padding(innerPadding),
+                state = state,
+                onItemClick = onItemClick
+            )
         }
     }
 }
 
+/**
+ * Composable que se encarga EXCLUSIVAMENTE de mostrar el detalle de un ítem.
+ */
+@Composable
+private fun ItemDetailView(
+    modifier: Modifier = Modifier,
+    selectedItem: Any
+) {
+    val context = LocalContext.current
+    Box(
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxSize()
+    ) {
+        when (selectedItem) {
+            is Zone -> ZoneDetailCard(
+                zone = selectedItem,
+                onNavigateClick = {
+                    val destination = calculateCentroid(selectedItem.vector)
+                    val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
+                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).setPackage("com.google.android.apps.maps")
+                    context.startActivity(mapIntent)
+                }
+                // El parámetro onShowOnMapClick se elimina porque no existe en tu tarjeta
+            )
+            is InterestPoint -> InterestPointDetailCard(
+                point = selectedItem,
+                onNavigateClick = {
+                    val destination = selectedItem.location
+                    val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
+                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).setPackage("com.google.android.apps.maps")
+                    context.startActivity(mapIntent)
+                }
+                // El parámetro onShowOnMapClick se elimina porque no existe en tu tarjeta
+            )
+        }
+    }
+}
+
+/**
+ * Composable que se encarga EXCLUSIVAMENTE de mostrar la lista de ítems.
+ */
+@Composable
+private fun ItemListView(
+    modifier: Modifier = Modifier,
+    state: CategoryDetailState,
+    onItemClick: (item: Any) -> Unit
+) {
+    // La lógica de ordenación ahora vive aquí, en un contexto más pequeño.
+    val sortedItems = remember(state) {
+        when (state.categoryType) {
+            "zones" -> state.zones.map { zone ->
+                val centroid = calculateCentroid(zone.vector)
+                val distance = state.userLocation?.let {
+                    calculateDistance(it.latitude, it.longitude, centroid.latitude, centroid.longitude)
+                }
+                ListItemData(data = zone, name = zone.name, distance = distance)
+            }.let { if (state.userLocation != null) it.sortedBy { item -> item.distance } else it }
+
+            "gas_stations" -> state.interestPoints
+                .filter { it.type == "GasStation" }
+                .map { point ->
+                    val distance = state.userLocation?.let {
+                        calculateDistance(it.latitude, it.longitude, point.location.latitude, point.location.longitude)
+                    }
+                    ListItemData(data = point, name = point.name, distance = distance)
+                }.let { if (state.userLocation != null) it.sortedBy { item -> item.distance } else it }
+
+            else -> emptyList()
+        }
+    }
+
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        items(sortedItems) { item ->
+            ItemCard(
+                item = item,
+                onClick = { onItemClick(item.data) }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+// Data class para la lista. No cambia.
 data class ListItemData(val data: Any, val name: String, val distance: Double?)
 
+// Composable para cada tarjeta de la lista. No cambia.
 @Composable
 fun ItemCard(item: ListItemData, onClick: () -> Unit) {
     val df = DecimalFormat("#.##")

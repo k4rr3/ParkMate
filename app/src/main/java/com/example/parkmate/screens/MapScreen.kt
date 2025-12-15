@@ -4,13 +4,15 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -20,18 +22,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.parkmate.data.models.InterestPoint
 import com.example.parkmate.data.models.Zone
+import com.example.parkmate.screens.PermissionManager
 import com.example.parkmate.screens.rememberPermissionManager
-import com.example.parkmate.ui.components.InterestPointDetailCard
-import com.example.parkmate.ui.components.MapView
-import com.example.parkmate.ui.components.SearchBar
-import com.example.parkmate.ui.components.ZoneDetailCard
+import com.example.parkmate.ui.components.*
 import com.example.parkmate.utils.calculateCentroid
 import com.example.parkmate.viewmodel.InterestPointViewModel
 import com.example.parkmate.viewmodel.ZoneViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -42,11 +44,9 @@ import kotlinx.coroutines.tasks.await
 fun MapScreen(
     zoneViewModel: ZoneViewModel = hiltViewModel(),
     interestPointViewModel: InterestPointViewModel = hiltViewModel()
-    // Ya no recibe parámetros de selección inicial
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
     val allZonesFromFirebase by zoneViewModel.zones.collectAsState()
     val allInterestPoints by interestPointViewModel.interestPoints.collectAsState()
     val zonesLoading by zoneViewModel.isLoading.collectAsState()
@@ -72,69 +72,25 @@ fun MapScreen(
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
 
-    LaunchedEffect(searchQuery, allZonesFromFirebase) {
-        if (searchQuery.isNotBlank()) {
-            searchSuggestions = allZonesFromFirebase.filter { it.name.contains(searchQuery, ignoreCase = true) }
-            showSuggestions = true
-        } else {
-            searchSuggestions = emptyList()
-            showSuggestions = false
-        }
+    HandleSearchQuery(searchQuery, allZonesFromFirebase) { suggestions, show ->
+        searchSuggestions = suggestions
+        showSuggestions = show
     }
 
-    LaunchedEffect(sheetState) {
-        snapshotFlow { sheetState.isCollapsed }
-            .collect { isCollapsed ->
-                if (isCollapsed) {
-                    selectedZone = null
-                    selectedInterestPoint = null
-                }
-            }
+    HandleSheetCollapse(sheetState) {
+        selectedZone = null
+        selectedInterestPoint = null
     }
 
-    LaunchedEffect(Unit) {
-        locationPermissionManager.requestPermission()
-    }
-
-    LaunchedEffect(locationPermissionManager.hasPermission) {
-        if (locationPermissionManager.hasPermission && !locationHasBeenCentered) {
-            try {
-                val location = fusedLocationProviderClient.lastLocation.await()
-                if (location != null) {
-                    val userLatLng = LatLng(location.latitude, location.longitude)
-                    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f), 1000)
-                    locationHasBeenCentered = true
-                }
-            } catch (e: Exception) { /* Ignorar error */ }
-        }
+    RequestPermissionEffect(locationPermissionManager)
+    CenterLocationOnce(locationPermissionManager, locationHasBeenCentered, fusedLocationProviderClient, cameraPositionState) {
+        locationHasBeenCentered = true
     }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContent = {
-            if (selectedZone != null) {
-                ZoneDetailCard(
-                    zone = selectedZone!!,
-                    onNavigateClick = {
-                        val destination = calculateCentroid(selectedZone!!.vector)
-                        val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
-                        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).setPackage("com.google.android.apps.maps")
-                        context.startActivity(mapIntent)
-                    }
-                )
-            } else if (selectedInterestPoint != null) {
-                InterestPointDetailCard(
-                    point = selectedInterestPoint!!,
-                    onNavigateClick = {
-                        val destination = selectedInterestPoint!!.location
-                        val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
-                        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).setPackage("com.google.android.apps.maps")
-                        context.startActivity(mapIntent)
-                    }
-                )
-            } else {
-                Spacer(modifier = Modifier.height(1.dp))
-            }
+            BottomSheetContent(selectedZone, selectedInterestPoint, context)
         },
         sheetPeekHeight = if (selectedZone != null || selectedInterestPoint != null) 200.dp else 0.dp,
         sheetGesturesEnabled = selectedZone != null || selectedInterestPoint != null
@@ -172,15 +128,22 @@ fun MapScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                SearchBar(
+                // ===================== INICIO DEL CAMBIO =====================
+
+                // 1. Se construye el objeto de estado con los valores que ya existen
+                val searchState = SearchBarState(
                     searchQuery = searchQuery,
-                    onSearchQueryChange = { newQuery -> searchQuery = newQuery },
                     showParking = showParking,
-                    onParkingToggle = { showParking = !showParking },
                     showGasStations = showGasStations,
-                    onGasStationsToggle = { showGasStations = !showGasStations },
                     showSuggestions = showSuggestions,
-                    suggestions = searchSuggestions,
+                    suggestions = searchSuggestions
+                )
+
+                // 2. Se construye el objeto de acciones con las lambdas que ya existen
+                val searchActions = SearchBarActions(
+                    onSearchQueryChange = { searchQuery = it },
+                    onParkingToggle = { showParking = !showParking },
+                    onGasStationsToggle = { showGasStations = !showGasStations },
                     onSuggestionClick = { zone ->
                         keyboardController?.hide()
                         searchQuery = zone.name
@@ -194,11 +157,100 @@ fun MapScreen(
                         }
                     }
                 )
+
+                // 3. Se llama al nuevo SearchBar con solo dos parámetros
+                SearchBar(
+                    state = searchState,
+                    actions = searchActions
+                )
+
+                // ====================== FIN DEL CAMBIO ======================
             }
 
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
+    }
+}
+
+@Composable
+fun HandleSearchQuery(query: String, zones: List<Zone>, onUpdate: (List<Zone>, Boolean) -> Unit) {
+    LaunchedEffect(query, zones) {
+        if (query.isNotBlank()) {
+            onUpdate(zones.filter { it.name.contains(query, ignoreCase = true) }, true)
+        } else {
+            onUpdate(emptyList(), false)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun HandleSheetCollapse(sheetState: BottomSheetState, onCollapse: () -> Unit) {
+    LaunchedEffect(sheetState) {
+        snapshotFlow { sheetState.isCollapsed }.collect { isCollapsed ->
+            if (isCollapsed) onCollapse()
+        }
+    }
+}
+
+@Composable
+fun RequestPermissionEffect(permissionManager: PermissionManager) {
+    LaunchedEffect(Unit) {
+        permissionManager.requestPermission()
+    }
+}
+
+@Composable
+fun CenterLocationOnce(
+    permissionManager: PermissionManager,
+    locationCentered: Boolean,
+    client: FusedLocationProviderClient,
+    camera: CameraPositionState,
+    onCentered: () -> Unit
+) {
+    LaunchedEffect(permissionManager.hasPermission) {
+        if (permissionManager.hasPermission && !locationCentered) {
+            try {
+                val location = client.lastLocation.await()
+                if (location != null) {
+                    val userLatLng = LatLng(location.latitude, location.longitude)
+                    camera.animate(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f), 1000)
+                    onCentered()
+                }
+            } catch (e: Exception) {
+                Log.e("MapScreen", "Error al obtener la ubicación", e)
+            }
+        }
+    }
+}
+
+@Composable
+fun BottomSheetContent(selectedZone: Zone?, selectedPoint: InterestPoint?, context: android.content.Context) {
+    when {
+        selectedZone != null -> {
+            ZoneDetailCard(
+                zone = selectedZone,
+                onNavigateClick = {
+                    val destination = calculateCentroid(selectedZone.vector)
+                    val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
+                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).setPackage("com.google.android.apps.maps")
+                    context.startActivity(mapIntent)
+                }
+            )
+        }
+        selectedPoint != null -> {
+            InterestPointDetailCard(
+                point = selectedPoint,
+                onNavigateClick = {
+                    val destination = selectedPoint.location
+                    val gmmIntentUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}")
+                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).setPackage("com.google.android.apps.maps")
+                    context.startActivity(mapIntent)
+                }
+            )
+        }
+        else -> Spacer(modifier = Modifier.height(1.dp))
     }
 }

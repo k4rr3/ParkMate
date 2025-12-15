@@ -52,6 +52,9 @@ fun ZoneDetailCard(
             Text(text = "Horario: ${zone.schedule}", style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
+
+            // AFEGIR BOTÓ PAGO
+
             // --- AQUÍ ESTÁ EL NUEVO BOTÓN ---
             Button(
                 onClick = onNavigateClick, // Llama a la función que nos pasan desde MapScreen

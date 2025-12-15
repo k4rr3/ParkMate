@@ -16,15 +16,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.parkmate.data.models.InterestPoint
+import com.example.parkmate.data.models.Zone
 import com.example.parkmate.viewmodel.InterestPointViewModel
 import com.example.parkmate.viewmodel.ZoneViewModel
 import com.google.android.gms.maps.model.LatLng
 
 private enum class ViewMode { MAP, LIST }
 
+/**
+ * Función principal que gestiona la vista de Mapa o Lista.
+ */
 @Composable
 fun MapAndListScreen(
     zoneViewModel: ZoneViewModel = hiltViewModel(),
@@ -32,13 +38,11 @@ fun MapAndListScreen(
 ) {
     var currentView by remember { mutableStateOf(ViewMode.MAP) }
     val listNavController = rememberNavController()
-
-    // Estado para saber qué ítem de la lista está seleccionado
     var selectedListItem by remember { mutableStateOf<Any?>(null) }
-
     val allZones by zoneViewModel.zones.collectAsState()
     val allInterestPoints by interestPointViewModel.interestPoints.collectAsState()
 
+    // Usamos un solo Box que contiene el Scaffold y el FAB
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold { innerPadding ->
             Box(
@@ -48,61 +52,36 @@ fun MapAndListScreen(
             ) {
                 when (currentView) {
                     ViewMode.MAP -> {
-                        // MapScreen vuelve a ser simple.
                         MapScreen(
                             zoneViewModel = zoneViewModel,
                             interestPointViewModel = interestPointViewModel
+                            // Los parámetros que daban error se han eliminado.
                         )
                     }
                     ViewMode.LIST -> {
-                        NavHost(navController = listNavController, startDestination = "category_list") {
-                            composable("category_list") {
-                                ListScreen(
-                                    onCategoryClick = { route, userLocation ->
-                                        listNavController.currentBackStackEntry?.savedStateHandle?.set("user_location", userLocation)
-                                        listNavController.navigate(route)
-                                    }
-                                )
-                            }
-                            composable("category_detail/{type}") { backStackEntry ->
-                                val categoryType = backStackEntry.arguments?.getString("type") ?: ""
-                                val userLocation = listNavController.previousBackStackEntry?.savedStateHandle?.get<LatLng?>("user_location")
-
-                                CategoryDetailScreen(
-                                    categoryType = categoryType,
-                                    userLocation = userLocation,
-                                    zones = allZones,
-                                    interestPoints = allInterestPoints,
-                                    selectedItem = selectedListItem,
-                                    onItemClick = { item ->
-                                        selectedListItem = item // Guardamos el ítem para mostrar su detalle
-                                    },
-                                    onNavigateBack = {
-                                        listNavController.popBackStack() // Volver a la pantalla de categorías
-                                    },
-                                    onClearSelection = {
-                                        selectedListItem = null // Limpiar selección para volver a la lista
-                                    }
-                                )
-                            }
-                        }
+                        ListView(
+                            navController = listNavController,
+                            zones = allZones,
+                            interestPoints = allInterestPoints,
+                            selectedItem = selectedListItem,
+                            onSelectItem = { item -> selectedListItem = item },
+                            onClearSelection = { selectedListItem = null }
+                        )
                     }
                 }
             }
         }
 
-        // Botón flotante para cambiar entre mapa y lista
+        // El FAB se coloca en el Box exterior y se alinea abajo a la izquierda (start)
         FloatingActionButton(
             onClick = {
-                // Si cambiamos de vista, reseteamos el estado de selección de la lista
-                if (currentView == ViewMode.LIST) {
-                    selectedListItem = null
-                    // Volvemos a la pantalla principal de la lista si estábamos en un detalle
-                    if (listNavController.currentDestination?.route?.startsWith("category_detail") == true) {
-                        listNavController.popBackStack(route = "category_list", inclusive = false)
-                    }
-                }
-                currentView = if (currentView == ViewMode.MAP) ViewMode.LIST else ViewMode.MAP
+                // La lógica del clic se extrae a una función para bajar la complejidad
+                handleViewChange(
+                    currentView = currentView,
+                    listNavController = listNavController,
+                    onViewChange = { newView -> currentView = newView },
+                    onClearSelection = { selectedListItem = null }
+                )
             },
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -111,6 +90,74 @@ fun MapAndListScreen(
             Icon(
                 imageVector = if (currentView == ViewMode.MAP) Icons.Default.List else Icons.Default.Map,
                 contentDescription = if (currentView == ViewMode.MAP) "Ver lista" else "Ver mapa"
+            )
+        }
+    }
+}
+
+/**
+ * Función privada que aísla la lógica del onClick del FAB para reducir la complejidad
+ * de la función principal.
+ */
+private fun handleViewChange(
+    currentView: ViewMode,
+    listNavController: NavHostController,
+    onViewChange: (ViewMode) -> Unit,
+    onClearSelection: () -> Unit
+) {
+    if (currentView == ViewMode.LIST) {
+        onClearSelection()
+        // Volvemos a la pantalla principal de la lista si estábamos en un detalle
+        if (listNavController.currentDestination?.route?.startsWith("category_detail") == true) {
+            listNavController.popBackStack(route = "category_list", inclusive = false)
+        }
+    }
+    // Cambiamos la vista
+    onViewChange(if (currentView == ViewMode.MAP) ViewMode.LIST else ViewMode.MAP)
+}
+
+
+/**
+ * Un Composable que encapsula la navegación de la vista de lista.
+ */
+@Composable
+private fun ListView(
+    navController: NavHostController,
+    zones: List<Zone>,
+    interestPoints: List<InterestPoint>,
+    selectedItem: Any?,
+    onSelectItem: (Any) -> Unit,
+    onClearSelection: () -> Unit
+) {
+    NavHost(navController = navController, startDestination = "category_list") {
+        composable("category_list") {
+            ListScreen(
+                onCategoryClick = { route, userLocation ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("user_location", userLocation)
+                    navController.navigate(route)
+                }
+            )
+        }
+        composable("category_detail/{type}") { backStackEntry ->
+            val categoryType = backStackEntry.arguments?.getString("type") ?: ""
+            val userLocation = navController.previousBackStackEntry?.savedStateHandle?.get<LatLng?>("user_location")
+
+            // Construimos el objeto State para pasarlo al Composable
+            val detailState = CategoryDetailState(
+                categoryType = categoryType,
+                userLocation = userLocation,
+                zones = zones,
+                interestPoints = interestPoints
+            )
+
+            CategoryDetailScreen(
+                state = detailState,
+                selectedItem = selectedItem,
+                onItemClick = onSelectItem,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onClearSelection = onClearSelection
             )
         }
     }
