@@ -236,7 +236,6 @@ class VehicleViewModel @Inject constructor(
         return null
     }
 
-
     fun validateForm() {
         val state = _formState.value
         val nameError = validateGeneralText(state.name, "Name")
