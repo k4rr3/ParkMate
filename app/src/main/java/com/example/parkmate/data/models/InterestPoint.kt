@@ -9,13 +9,13 @@ data class InterestPoint(
     val location: GeoPoint = GeoPoint(0.0, 0.0),
     val schedule: String = "",
     val contact: String = "",
-    val Services: List<String> = emptyList(),
+    val services: List<String> = emptyList(),
     val price: FuelPrices? = null
 )
 
 data class FuelPrices(
-    val DA: String = "", // Diesel A
-    val DA_plus: String = "", // Diesel A+
-    val G95: String = "", // Gasoline 95
-    val G98: String = ""  // Gasoline 98
+    val da: String = "", // Diesel A
+    val daPlus: String = "", // Diesel A+
+    val g95: String = "", // Gasoline 95
+    val g98: String = ""  // Gasoline 98
 )

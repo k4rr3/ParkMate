@@ -52,10 +52,10 @@ fun InterestPointDetailCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    FuelPriceColumn(fuelType = "SP95", price = prices.G95)
-                    FuelPriceColumn(fuelType = "SP98", price = prices.G98)
-                    FuelPriceColumn(fuelType = "Diésel", price = prices.DA)
-                    FuelPriceColumn(fuelType = "Diésel+", price = prices.DA_plus)
+                    FuelPriceColumn(fuelType = "SP95", price = prices.g95)
+                    FuelPriceColumn(fuelType = "SP98", price = prices.g98)
+                    FuelPriceColumn(fuelType = "Diésel", price = prices.da)
+                    FuelPriceColumn(fuelType = "Diésel+", price = prices.daPlus)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }

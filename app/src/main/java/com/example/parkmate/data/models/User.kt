@@ -9,13 +9,13 @@ data class User(
     val phone: String = "",
     val premium: Boolean = false,
     val vehicleID: List<String> = emptyList(),
-    val PaymentMethod: Map<String, PaymentCard> = emptyMap(),
+    val paymentMethod: Map<String, PaymentCard> = emptyMap(),
     val createdAt: Timestamp = Timestamp.now(),
     val admin: Boolean = false
 )
 
 data class PaymentCard(
-    val CardNumber: String = "",
-    val ExpirationDate: String = "",
-    val CVV: String = ""
+    val cardNumber: String = "",
+    val expirationDate: String = "",
+    val cvv: String = ""
 )

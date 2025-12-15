@@ -3,7 +3,6 @@ package com.example.parkmate.data.repository
 import android.util.Log
 import com.example.parkmate.data.models.*
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -87,7 +86,7 @@ class FirestoreRepository @Inject constructor() {
                 if (error != null) {
                     close(error)
                 } else {
-                    val list = snapshot!!.toObjects(CarReminder::class.java)
+                    val list: List<CarReminder> = snapshot!!.toObjects(CarReminder::class.java)
                     trySend(list)
                 }
             }

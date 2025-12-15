@@ -250,7 +250,7 @@ class VehicleViewModel @Inject constructor(
                 nameError = nameError,
                 brandError = brandError,
                 modelError = modelError,
-                yearError = yearError as Int?,
+                yearError = yearError ,
                 plateError = plateError,
                 dgtLabelError = dgtLabelError,
                 isFormValid = nameError == null && brandError == null && modelError == null &&

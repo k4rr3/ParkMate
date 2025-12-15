@@ -94,7 +94,7 @@ class AuthViewModel @Inject constructor(
                 phone = "",
                 premium = false,
                 vehicleID = emptyList(),
-                PaymentMethod = emptyMap()
+                paymentMethod = emptyMap()
             )
 
             val success = firestoreRepository.createUser(user)
