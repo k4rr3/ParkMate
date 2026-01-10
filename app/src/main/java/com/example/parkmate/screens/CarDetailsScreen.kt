@@ -2,6 +2,7 @@ package com.example.parkmate.screens
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -28,6 +29,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -39,6 +41,8 @@ import com.example.parkmate.data.models.ReminderStatus
 import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.ui.theme.*
 import com.example.parkmate.viewmodel.VehicleViewModel
+import com.google.firebase.firestore.GeoPoint
+import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -115,6 +119,7 @@ fun CarDetailsScreen(
 
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CarDetailsContent(
     vehicle: Vehicle,
@@ -129,76 +134,125 @@ fun CarDetailsContent(
 
     val reminders by viewModel.reminders.collectAsState()
 
+    // Estado del parking
+    val parkingEnd by remember(vehicle.parkingEndTime) {
+        derivedStateOf { parseParkingEndTime(vehicle.parkingEndTime) }
+    }
+
+    val isCurrentlyParked = parkingEnd?.isAfter(LocalDateTime.now()) == true
+
+    // Cálculo del tiempo restante (se actualiza cada vez que cambia parkingEnd)
+    val timeRemaining = remember(parkingEnd, isCurrentlyParked) {
+        if (!isCurrentlyParked || parkingEnd == null) null
+        else {
+            val now = LocalDateTime.now()
+            val duration = java.time.Duration.between(now, parkingEnd!!)
+
+            if (duration.isNegative) null
+            else {
+                val hours = duration.toHours()
+                val minutes = duration.toMinutesPart()
+                when {
+                    hours > 0 -> "${hours}h ${minutes.toString().padStart(2, '0')}min"
+                    minutes > 0 -> "${minutes}min"
+                    else -> "<1min"
+                }
+            }
+        }
+    }
+
+    // Para actualización visual del countdown cada minuto
+    var tick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(isCurrentlyParked) {
+        if (isCurrentlyParked) {
+            while (true) {
+                delay(60_000) // cada minuto
+                tick++
+            }
+        }
+    }
+
     Scaffold { paddingValues ->
-        // Use the local variable for the check. This is safer.
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item {
-                    CarInfoCard(vehicle) {
-                        viewModel.loadVehicleIntoForm(it)
-                        showEditCarDialog = true
-                    }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Información principal del vehículo
+            item {
+                CarInfoCard(vehicle) {
+                    viewModel.loadVehicleIntoForm(it)
+                    showEditCarDialog = true
                 }
+            }
 
-                item {
-                    RemindersHeader(onAddClick = { showAddReminderDialog = true })
-                }
-
-                items(reminders, key = { it.id }) { reminder ->
-                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        ReminderItem(
-                            reminder = reminder,
-                            themeViewModel = themeViewModel,
-                            onItemClick = {
-                                selectedReminder = it
-                                showEditReminderDialog = true
-                            }
+            // Estado del aparcamiento
+            item {
+                ParkingStatusCard(
+                    isParked = isCurrentlyParked,
+                    endTime = parkingEnd,
+                    timeRemaining = timeRemaining,
+                    onDispark = {
+                        viewModel.updateVehicle(
+                            vehicle.id,
+                            mapOf(
+                                "parkingLocation" to GeoPoint(0.0, 0.0),
+                                "parkingEndTime" to null,
+                                "activeZoneId" to null
+                            ) as Map<String, String>
                         )
                     }
-                }
+                )
+            }
 
-                item { AnnualRevisionCard() }
-                item { InsuranceCard(
-                    provider = vehicle.insuranceProvider,
-                    onSave = { provider ->
-                        viewModel.updateInsurance(vehicle.id, provider)
-                    },
-                    onDelete = {
-                        viewModel.deleteInsurance(vehicle.id)
-                    }
-                )}
+            item {
+                RemindersHeader(onAddClick = { showAddReminderDialog = true })
+            }
 
-                // ** THE FIX IS HERE **
-                // Only add the DeleteButton to the list if the vehicle is not null
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    DeleteButton(
-                        vehicleId = vehicle.id,
-                        navController = navController,
-                        viewModel = viewModel
+            items(reminders, key = { it.id }) { reminder ->
+                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    ReminderItem(
+                        reminder = reminder,
+                        themeViewModel = themeViewModel,
+                        onItemClick = {
+                            selectedReminder = it
+                            showEditReminderDialog = true
+                        }
                     )
                 }
             }
 
+            item { AnnualRevisionCard() }
+
+            item {
+                InsuranceCard(
+                    provider = vehicle.insuranceProvider,
+                    onSave = { provider -> viewModel.updateInsurance(vehicle.id, provider) },
+                    onDelete = { viewModel.deleteInsurance(vehicle.id) }
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                DeleteButton(
+                    vehicleId = vehicle.id,
+                    navController = navController,
+                    viewModel = viewModel
+                )
+            }
+        }
     }
 
-    // --- Dialog Management ---
-    // The dialogs are outside the main content, so they are safe.
-    // They will only be shown when the vehicle is loaded and an item is clicked.
-
+    // Diálogos (sin cambios respecto a tu versión original)
     if (showAddReminderDialog) {
         AddOrEditReminderDialog(
             onDismiss = { showAddReminderDialog = false },
-            onSave = { _, title, dueDate -> // reminderId is null for new reminders
+            onSave = { _, title, dueDate ->
                 viewModel.addReminder(vehicle.id, title, dueDate)
                 showAddReminderDialog = false
             },
-            onDelete = { /* This will not be called in add mode */ }
+            onDelete = { /* no usado aquí */ }
         )
     }
 
@@ -222,8 +276,6 @@ fun CarDetailsContent(
         )
     }
 
-    // ** ANOTHER FIX IS HERE **
-    // Ensure currentVehicle is not null before trying to show the EditCarDialog
     if (showEditCarDialog) {
         EditCarDialog(
             vehicleId = vehicle.id,
@@ -236,13 +288,132 @@ fun CarDetailsContent(
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Tarjeta de estado de aparcamiento
+// ──────────────────────────────────────────────────────────────────────────────
 
-//
-// The rest of the file (ReminderItem, AddOrEditReminderDialog, etc.)
-// can remain exactly the same as in the previous correct version.
-// I am omitting them here for brevity, but they do not need to be changed.
-// Just ensure the `CarDetailsScreen` composable above is fully replaced.
-//
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ParkingStatusCard(
+    isParked: Boolean,
+    endTime: LocalDateTime?,
+    timeRemaining: String?,
+    onDispark: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isParked)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+            else
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LocalParking,
+                    contentDescription = null,
+                    tint = if (isParked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(36.dp)
+                )
+
+                Column {
+                    Text(
+                        text = if (isParked) "Currently parked" else "Not parked",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    if (isParked && endTime != null) {
+                        Text(
+                            text = "Ends: ${endTime.format(DateTimeFormatter.ofPattern("HH:mm '·' dd/MM"))}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            if (isParked && timeRemaining != null) {
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Surface(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = "Time remaining: $timeRemaining",
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedButton(
+                    onClick = onDispark,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Unpark now")
+                }
+            } else if (!isParked) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "You can park this vehicle from the map",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Función auxiliar para parsear el campo parkingEndTime
+// Ajusta el formato según lo que realmente guardes en Firestore
+// ──────────────────────────────────────────────────────────────────────────────
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun parseParkingEndTime(timeString: String?): LocalDateTime? {
+    if (timeString.isNullOrBlank()) return null
+
+    return try {
+        // Formato ISO más común y recomendado
+        LocalDateTime.parse(timeString)
+
+        // Alternativas si usas otro formato:
+        // DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").parse(timeString, LocalDateTime::from)
+        // DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").parse(timeString, LocalDateTime::from)
+    } catch (e: Exception) {
+        null
+    }
+}
+
+
 @Composable
 private fun RemindersHeader(onAddClick: () -> Unit) {
     Row(

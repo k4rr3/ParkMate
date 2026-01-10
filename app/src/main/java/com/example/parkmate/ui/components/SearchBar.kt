@@ -60,7 +60,7 @@ fun SearchBar(
             value = state.searchQuery,
             onValueChange = actions.onSearchQueryChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Buscar zona...") },
+            placeholder = { Text("Search area...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search Icon") },
             shape = RoundedCornerShape(32.dp),
             colors = TextFieldDefaults.colors(
@@ -92,7 +92,7 @@ fun SearchBar(
             FilterChip(
                 selected = state.showGasStations,
                 onClick = actions.onGasStationsToggle,
-                label = { Text("Gasolinera") },
+                label = { Text("Gas station") },
                 colors = chipColors
             )
         }

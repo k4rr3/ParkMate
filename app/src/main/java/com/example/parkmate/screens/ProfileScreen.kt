@@ -135,7 +135,7 @@ fun ProfileScreen(
 
 
 // "Comprar créditos"
-        SectionCard(title = "Comprar créditos") {
+        SectionCard(title = "Buy credits") {
             var isLoading by remember { mutableStateOf(false) }
 
             // Paquetes de créditos con su precio y link correspondiente
@@ -161,7 +161,7 @@ fun ProfileScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "$credits créditos",
+                                    text = "$credits credits",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp
                                 )
@@ -172,7 +172,7 @@ fun ProfileScreen(
                                 )
                                 if (credits == 50) {
                                     Text(
-                                        text = "¡Más popular!",
+                                        text = "¡Most popular!",
                                         color = MaterialTheme.colorScheme.secondary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 12.sp
@@ -200,7 +200,7 @@ fun ProfileScreen(
                                         strokeWidth = 2.dp
                                     )
                                 } else {
-                                    Text("Comprar", fontWeight = FontWeight.Bold)
+                                    Text("Buy", fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -209,7 +209,7 @@ fun ProfileScreen(
 
                 // Información adicional
                 Text(
-                    text = "Los créditos te permiten pagar parkings, zonas reguladas y gasolineras directamente desde la app.",
+                    text = "The credits allow you to pay for parking, regulated zones and gas stations directly from the app.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp)

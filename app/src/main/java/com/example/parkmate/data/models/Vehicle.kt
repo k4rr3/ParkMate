@@ -17,6 +17,8 @@ data class Vehicle(
     val fuelType: String = "",
     val dgtLabel: String = "",
     val parkingLocation: GeoPoint = GeoPoint(0.0, 0.0),
+    val parkingEndTime: String? = null,     // ej: "2026-01-10T14:30:00" o formato que prefieras
+    val activeZoneId: String? = null,        // opcional: para saber en qué zona está aparcado
     val maintenance: Maintenance? = null,
     val insuranceProvider: String? = null,
     val insurancePolicyUrl: String? = null
