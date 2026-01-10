@@ -142,7 +142,6 @@ fun SettingsScreen(
     navController: NavHostController,
     languageViewModel: LanguageViewModel
 ) {
-    // Create and remember a manager for each required permission.
     val locationPermissionManager = rememberPermissionManager(Manifest.permission.ACCESS_FINE_LOCATION)
     val notificationPermissionManager = rememberPermissionManager(Manifest.permission.POST_NOTIFICATIONS)
     var showLanguageDialog by remember { mutableStateOf(false) }
@@ -157,124 +156,159 @@ fun SettingsScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // App Settings Section
-            SectionHeader(title = stringResource(R.string.app_settings))
+            AppSettingsSection(
+                currentLang = currentLang,
+                onLanguageClick = { showLanguageDialog = true },
+                locationPermissionManager = locationPermissionManager,
+                notificationPermissionManager = notificationPermissionManager,
+                themeViewModel = themeViewModel,
+                context = context
+            )
 
-            SettingsCard {
-                SettingsItem(
-                    icon = Icons.Default.Language,
-                    title = stringResource(R.string.Language),
-                    subtitle = langName(currentLang),
-                    hasArrow = true,
-                    onClick = { showLanguageDialog = true }
-                )
+            Spacer(Modifier.height(24.dp))
 
-                Divider(modifier = Modifier.padding(start = 72.dp))
+            PrivacySecuritySection(navController)
 
-                // Location Services toggle.
-                SettingsItemWithSwitch(
-                    icon = Icons.Default.LocationOn,
-                    title = stringResource(R.string.location_services),
-                    subtitle = if (locationPermissionManager.hasPermission) stringResource(R.string.Always) else "Disabled",
-                    checked = locationPermissionManager.hasPermission,
-                    onCheckedChange = {
-                        if (locationPermissionManager.hasPermission) {
-                            // If permission is already granted, navigate to system settings.
-                            openAppSettings(context)
-                        } else {
-                            // If permission is not granted, request it.
-                            locationPermissionManager.requestPermission()
-                        }
-                    }
-                )
-
-                Divider(modifier = Modifier.padding(start = 72.dp))
-
-                // Notifications toggle.
-                SettingsItemWithSwitch(
-                    icon = Icons.Default.Notifications,
-                    title = "Notifications",
-                    subtitle = if (notificationPermissionManager.hasPermission) "Enabled" else "Disabled",
-                    checked = notificationPermissionManager.hasPermission,
-                    onCheckedChange = {
-                        if (notificationPermissionManager.hasPermission) {
-                            openAppSettings(context)
-                        } else {
-                            notificationPermissionManager.requestPermission()
-                        }
-                    }
-                )
-
-                Divider(modifier = Modifier.padding(start = 72.dp))
-
-                // Dark Mode toggle.
-                SettingsItemWithSwitch(
-                    icon = Icons.Default.DarkMode,
-                    title = stringResource(R.string.dark_mode),
-                    subtitle = stringResource(R.string.system),
-                    checked = themeViewModel.getDarkMode(),
-                    onCheckedChange = {  themeViewModel.toggleTheme() }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            SectionHeader(title = stringResource(R.string.privacy_security))
-
-            SettingsCard {
-                SettingsItem(
-                    icon = Icons.Default.Help,
-                    title = stringResource(R.string.terms_and_conditions),
-                    subtitle = "",
-                    hasArrow = true,
-                    onClick = { navController.navigate(Screen.TermsAndConditionsScreen.route)}
-                )
-
-                Divider(modifier = Modifier.padding(start = 72.dp))
-
-                SettingsItem(
-                    icon = Icons.Default.Info,
-                    title = stringResource(R.string.about_us),
-                    subtitle = "Version 2.4.1",
-                    hasArrow = true,
-                    onClick = { navController.navigate(Screen.AboutUsScreen.route)}
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp))
         }
     }
-    if (showLanguageDialog) {
-        AlertDialog(
-            onDismissRequest = { showLanguageDialog = false },
-            title = { Text(text = stringResource(R.string.Language)) },
-            text = {
-                Column {
-                    listOf(
-                        "en" to stringResource(R.string.english),
-                        "es" to stringResource(R.string.spanish),
-                        "ca" to stringResource(R.string.catalan)
-                    ).forEach { (code, label) ->
-                        Text(
-                            text = label,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    languageViewModel.changeLanguage(code)
-                                    showLanguageDialog = false
-                                }
-                                .padding(12.dp)
-                        )
 
-                    }
-                }
-            },
-            confirmButton = {}
+    if (showLanguageDialog) {
+        LanguageDialog(
+            languageViewModel = languageViewModel,
+            onDismiss = { showLanguageDialog = false }
         )
     }
+}
 
+@Composable
+private fun AppSettingsSection(
+    currentLang: String,
+    onLanguageClick: () -> Unit,
+    locationPermissionManager: PermissionManager,
+    notificationPermissionManager: PermissionManager,
+    themeViewModel: ThemeViewModel,
+    context: Context
+) {
+    SectionHeader(title = stringResource(R.string.app_settings))
+
+    SettingsCard {
+        SettingsItem(
+            icon = Icons.Default.Language,
+            title = stringResource(R.string.Language),
+            subtitle = langName(currentLang),
+            hasArrow = true,
+            onClick = onLanguageClick
+        )
+        Divider(modifier = Modifier.padding(start = 72.dp))
+
+        PermissionToggle(
+            icon = Icons.Default.LocationOn,
+            title = stringResource(R.string.location_services),
+            permissionManager = locationPermissionManager,
+            context = context
+        )
+
+        Divider(modifier = Modifier.padding(start = 72.dp))
+
+        PermissionToggle(
+            icon = Icons.Default.Notifications,
+            title = "Notifications",
+            permissionManager = notificationPermissionManager,
+            context = context
+        )
+
+        Divider(modifier = Modifier.padding(start = 72.dp))
+
+        SettingsItemWithSwitch(
+            icon = Icons.Default.DarkMode,
+            title = stringResource(R.string.dark_mode),
+            subtitle = stringResource(R.string.system),
+            checked = themeViewModel.getDarkMode(),
+            onCheckedChange = { themeViewModel.toggleTheme() }
+        )
+    }
+}
+
+@Composable
+private fun PrivacySecuritySection(navController: NavHostController) {
+    SectionHeader(title = stringResource(R.string.privacy_security))
+
+    SettingsCard {
+        SettingsItem(
+            icon = Icons.Default.Help,
+            title = stringResource(R.string.terms_and_conditions),
+            subtitle = "",
+            hasArrow = true,
+            onClick = { navController.navigate(Screen.TermsAndConditionsScreen.route) }
+        )
+
+        Divider(modifier = Modifier.padding(start = 72.dp))
+
+        SettingsItem(
+            icon = Icons.Default.Info,
+            title = stringResource(R.string.about_us),
+            subtitle = "Version 2.4.1",
+            hasArrow = true,
+            onClick = { navController.navigate(Screen.AboutUsScreen.route) }
+        )
+    }
+}
+
+@Composable
+private fun PermissionToggle(
+    icon: ImageVector,
+    title: String,
+    permissionManager: PermissionManager,
+    context: Context
+) {
+    SettingsItemWithSwitch(
+        icon = icon,
+        title = title,
+        subtitle = if (permissionManager.hasPermission) stringResource(R.string.enabled) else "Disabled",
+        checked = permissionManager.hasPermission,
+        onCheckedChange = {
+            if (permissionManager.hasPermission) {
+                openAppSettings(context)
+            } else {
+                permissionManager.requestPermission()
+            }
+        }
+    )
+}
+
+@Composable
+private fun LanguageDialog(
+    languageViewModel: LanguageViewModel,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.Language)) },
+        text = {
+            Column {
+                listOf(
+                    "en" to stringResource(R.string.english),
+                    "es" to stringResource(R.string.spanish),
+                    "ca" to stringResource(R.string.catalan)
+                ).forEach { (code, label) ->
+                    Text(
+                        text = label,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                languageViewModel.changeLanguage(code)
+                                onDismiss()
+                            }
+                            .padding(12.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {}
+    )
 }
 
 

@@ -33,15 +33,20 @@ import java.security.MessageDigest
 import java.util.UUID
 import javax.inject.Inject
 import com.example.parkmate.R
+import com.example.parkmate.data.preferences.UserPreferences
+import com.google.firebase.auth.FirebaseUser
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val firestoreRepository: FirestoreRepository,
+    val userPreferences: UserPreferences,
     @ApplicationContext private val context: Context  // Added @ApplicationContext
 ) : ViewModel() {
     companion object {
         private const val TAG = "AuthViewModel"
     }
+
+
 
     var email by mutableStateOf("")
         private set
@@ -90,7 +95,7 @@ class AuthViewModel @Inject constructor(
                 phone = "",
                 premium = false,
                 vehicleID = emptyList(),
-                PaymentMethod = emptyMap()
+                paymentMethod = emptyMap()
             )
 
             val success = firestoreRepository.createUser(user)
@@ -145,39 +150,70 @@ class AuthViewModel @Inject constructor(
     // Email/Password Login
     fun loginWithEmail() {
         clearMessages()
-        if (!validLoginData()) {
-            return
-        }
+        if (!validLoginData()) return
 
         viewModelScope.launch {
             isLoading = true
-            errorMessage = null
-            successMessage = null
+            resetMessages()
 
             try {
-                val authResult = auth.signInWithEmailAndPassword(email, password).await()
-                val user = authResult.user
+                val user = signInUser() ?: return@launch showLoginFailed()
 
-                if (user != null) {
-                    if (user.isEmailVerified) {
-                        successMessage = context.getString(R.string.login_successful)
-                        // User data will be loaded from Firestore in other viewmodels
-                    } else {
-                        errorMessage = context.getString(R.string.please_verify_email)
-                        auth.signOut() // Sign out if email not verified
-                    }
-                } else {
-                    errorMessage = context.getString(R.string.login_failed)
+                if (!user.isEmailVerified) {
+                    handleUnverifiedEmail()
+                    return@launch
                 }
+
+                handleSuccessfulLogin()
             } catch (e: Exception) {
-                errorMessage = when (e) {
-                    is FirebaseAuthInvalidUserException -> context.getString(R.string.user_not_found_or_disabled)
-                    is FirebaseAuthInvalidCredentialsException -> context.getString(R.string.wrong_credentials)
-                    else -> context.getString(R.string.login_failed) + ": ${e.message}"
-                }
+                handleLoginError(e)
             } finally {
                 isLoading = false
             }
+        }
+    }
+
+
+
+
+    private fun resetMessages() {
+        errorMessage = null
+        successMessage = null
+    }
+
+    private suspend fun signInUser(): FirebaseUser? {
+        return auth.signInWithEmailAndPassword(email, password)
+            .await()
+            .user
+    }
+
+    private fun showLoginFailed() {
+        errorMessage = context.getString(R.string.login_failed)
+    }
+
+    private fun handleUnverifiedEmail() {
+        errorMessage = context.getString(R.string.please_verify_email)
+        auth.signOut()
+    }
+
+    private fun handleSuccessfulLogin() {
+        successMessage = context.getString(R.string.login_successful)
+
+        viewModelScope.launch {
+            userPreferences.setUserHasLoggedIn(true)
+        }
+    }
+
+    private fun handleLoginError(e: Exception) {
+        errorMessage = when (e) {
+            is FirebaseAuthInvalidUserException ->
+                context.getString(R.string.user_not_found_or_disabled)
+
+            is FirebaseAuthInvalidCredentialsException ->
+                context.getString(R.string.wrong_credentials)
+
+            else ->
+                context.getString(R.string.login_failed) + ": ${e.message}"
         }
     }
 
@@ -234,6 +270,10 @@ class AuthViewModel @Inject constructor(
                     }
 
                     successMessage = context.getString(R.string.sign_in_with_google)
+
+                    viewModelScope.launch {
+                        userPreferences.setUserHasLoggedIn(true)
+                    }
                     Log.d(TAG, "Google sign-in successful")
                 }
             } catch (e: Exception) {
@@ -281,6 +321,7 @@ class AuthViewModel @Inject constructor(
                 auth.signOut()
                 val clearRequest = ClearCredentialStateRequest()
                 credentialManager.clearCredentialState(clearRequest)
+                userPreferences.setUserHasLoggedIn(false)
                 successMessage = context.getString(R.string.signed_out_successfully)
                 Log.d(TAG, "Signed out successfully")
             } catch (e: Exception) {
@@ -311,28 +352,34 @@ class AuthViewModel @Inject constructor(
     }
 
     fun checkValidPassword() {
-        if (password.isEmpty()) {
-            passwordErrorMessage = context.getString(R.string.password_can_not_be_empty)
-        } else if (password.length < 8) {
-            passwordErrorMessage = context.getString(R.string.password_too_short)
-        } else if (password.length > 128) {
-            passwordErrorMessage = context.getString(R.string.password_too_long)
-        } else if (password.contains(" ")) {
-            passwordErrorMessage = context.getString(R.string.password_contains_spaces)
+        passwordErrorMessage = when {
+            password.isEmpty() ->
+                context.getString(R.string.password_can_not_be_empty)
+            password.length < 8 ->
+                context.getString(R.string.password_too_short)
+            password.length > 128 ->
+                context.getString(R.string.password_too_long)
+            password.contains(" ") ->
+                context.getString(R.string.password_contains_spaces)
+            else -> null
         }
     }
 
+
     fun checkValidEmail() {
-        if (email.isEmpty()) {
-            mailErrorMessage = context.getString(R.string.email_can_not_be_empty)
-        } else if (email.length > 100) {
-            mailErrorMessage = context.getString(R.string.email_too_long)
-        } else if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex())) {
-            mailErrorMessage = context.getString(R.string.email_invalid_format)
-        } else if (email.startsWith(".") || email.endsWith(".")) {
-            mailErrorMessage = context.getString(R.string.email_invalid_dot_position)
+        mailErrorMessage = when {
+            email.isEmpty() ->
+                context.getString(R.string.email_can_not_be_empty)
+            email.length > 100 ->
+                context.getString(R.string.email_too_long)
+            !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()) ->
+                context.getString(R.string.email_invalid_format)
+            email.startsWith(".") || email.endsWith(".") ->
+                context.getString(R.string.email_invalid_dot_position)
+            else -> null
         }
     }
+
 
     fun validLoginData(): Boolean {
         clearMessages()
@@ -389,4 +436,6 @@ class AuthViewModel @Inject constructor(
             isLoading = false
         }
     }
+
+
 }

@@ -202,11 +202,12 @@ fun AddCarForm(
                     errorMessage = formState.modelError
                 )
 
+
                 ValidatedTextField(
                     label = stringResource(R.string.year),
                     value = formState.year,
                     onValueChange = viewModel::onYearChange,
-                    errorMessage = formState.yearError,
+                    errorMessage =  formState.yearError?.let { stringResource(id = it) },
                     keyboardType = KeyboardType.Number
                 )
 
@@ -260,7 +261,7 @@ fun AddCarForm(
                         },
                         enabled = formState.isFormValid
                     ) {
-                        Text(stringResource(R.string.add))
+                        Text(stringResource(R.string.add_button))
                     }
                 }
             }

@@ -27,7 +27,4 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    suspend fun loadMechanics(): List<InterestPoint> {
-        return firestoreRepository.getMechanics()
-    }
 }

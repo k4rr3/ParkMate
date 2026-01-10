@@ -1,25 +1,79 @@
 package com.example.parkmate.viewmodel
 
-import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.parkmate.data.models.CarReminder
 import com.example.parkmate.data.models.Vehicle
 import com.example.parkmate.data.repository.FirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.parkmate.R
+
+
+data class VehicleDetailsUiState(
+    val isLoading: Boolean = true,
+    val vehicle: Vehicle? = null,
+    val error: String? = null
+)
 
 @HiltViewModel
 class VehicleViewModel @Inject constructor(
     private val firestoreRepository: FirestoreRepository
 ) : ViewModel() {
 
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    private val _reminders = MutableStateFlow<List<CarReminder>>(emptyList())
     private val _vehicles = MutableStateFlow<List<Vehicle>>(emptyList())
     val vehicles: StateFlow<List<Vehicle>> = _vehicles.asStateFlow()
+    private val _vehicleUiState = MutableStateFlow(VehicleDetailsUiState())
+    val vehicleUiState: StateFlow<VehicleDetailsUiState> = _vehicleUiState.asStateFlow()
 
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private var vehicleListenerJob: Job? = null
+
+    val reminders = _reminders.asStateFlow()
+
+
+    fun updateInsurance(vehicleId: String, provider: String) {
+        viewModelScope.launch {
+            val updates = mapOf(
+                "insuranceProvider" to provider,
+            )
+            firestoreRepository.updateVehicle(vehicleId, updates)
+        }
+    }
+
+    fun deleteInsurance(vehicleId: String) {
+        viewModelScope.launch {
+            val updates = mapOf(
+                "insuranceProvider" to "null",
+            )
+            firestoreRepository.updateVehicle(vehicleId, updates)
+        }
+    }
+
+
+    fun loadReminders(vehicleId: String) {
+        viewModelScope.launch {
+            firestoreRepository.getRemindersRealtime(vehicleId).collect {
+                _reminders.value = it
+            }
+        }
+    }
+
+    fun addReminder(vehicleId: String, title: String, dueDate: Long) {
+        val reminder = CarReminder(
+            vehicleId = vehicleId,
+            title = title,
+            dueDate = dueDate
+        )
+        firestoreRepository.addReminder(vehicleId, reminder)
+    }
+
 
     fun getCurrentUserId(): String? = auth.currentUser?.uid
 
@@ -38,14 +92,28 @@ class VehicleViewModel @Inject constructor(
      * 🔹 Returns a Flow<Vehicle?> for a specific vehicle ID.
      * This allows Compose to observe changes reactively.
      */
-    fun getVehicleByIdRealtime(vehicleId: String): StateFlow<Vehicle?> {
-        val state = MutableStateFlow<Vehicle?>(null)
-        firestoreRepository.getVehicleRealtime(vehicleId) { vehicle ->
-            state.value = vehicle
-        }
-        return state
-    }
 
+    fun loadVehicleDetails(vehicleId: String) {
+        if (vehicleListenerJob?.isActive == true) return
+        vehicleListenerJob?.cancel()
+
+        vehicleListenerJob = viewModelScope.launch {
+            firestoreRepository.getVehicleRealtime(vehicleId) // This now calls the correct Flow-based function
+                .onStart {
+                    _vehicleUiState.value = VehicleDetailsUiState(isLoading = true)
+                }
+                .catch { cause: Throwable ->
+                    if (cause is Exception) {
+                        _vehicleUiState.value = VehicleDetailsUiState(isLoading = false, error = cause.message)
+                    } else {
+                        throw cause
+                    }
+                }
+                .collect { updatedVehicle ->
+                    _vehicleUiState.value = VehicleDetailsUiState(isLoading = false, vehicle = updatedVehicle)
+                }
+        }
+    }
 
     /**
      * 🔹 Add a new vehicle to Firestore and link it to the current user.
@@ -61,7 +129,7 @@ class VehicleViewModel @Inject constructor(
                     // 2️⃣ Link vehicle to user
                     val user = firestoreRepository.getUser(uid)
                     if (user != null) {
-                        val updatedVehicleIds = (user.vehicleID ?: emptyList()) + vehicleId
+                        val updatedVehicleIds = user.vehicleID + vehicleId
                         firestoreRepository.updateUser(uid, mapOf("vehicleID" to updatedVehicleIds))
                     }
 
@@ -101,7 +169,7 @@ class VehicleViewModel @Inject constructor(
                     val user = firestoreRepository.getUser(uid)
                     if (user != null) {
                         val updatedVehicleIds =
-                            (user.vehicleID ?: emptyList()).filter { it != vehicleId }
+                            user.vehicleID.filter { it != vehicleId }
                         firestoreRepository.updateUser(uid, mapOf("vehicleID" to updatedVehicleIds))
                     }
 
@@ -125,7 +193,7 @@ class VehicleViewModel @Inject constructor(
         val nameError: String? = null,
         val brandError: String? = null,
         val modelError: String? = null,
-        val yearError: String? = null,
+        val yearError: Int? = null,
         val plateError: String? = null,
         val dgtLabelError: String? = null,
         val isFormValid: Boolean = false
@@ -143,12 +211,12 @@ class VehicleViewModel @Inject constructor(
         return if (!plate.matches(plateRegex)) "Invalid format (e.g., 1234ABC)" else null
     }
 
-    private fun validateYear(year: String): String? {
-        if (year.isBlank()) return "Year is required."
-        if (!year.matches(yearRegex)) return "Must be a 4-digit year."
-        val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
-        val intYear = year.toIntOrNull() ?: return "Invalid year."
-        return if (intYear < 1900 || intYear > currentYear) "Year must be between 1900 and $currentYear" else null
+    private fun validateYear(year: String): Int? {
+        if (year.isBlank()) return R.string.error_year_invalid_format
+        if (!year.matches(yearRegex)) return R.string.error_year_invalid_format
+        val currentYear = java.util.Calendar.getInstance()[java.util.Calendar.YEAR]
+        val intYear = year.toIntOrNull() ?: return R.string.error_year_invalid
+        return if (intYear < 1900 || intYear > currentYear) R.string.error_year_range else null
     }
 
     private fun validateGeneralText(text: String, fieldName: String): String? {
@@ -168,7 +236,6 @@ class VehicleViewModel @Inject constructor(
         return null
     }
 
-
     fun validateForm() {
         val state = _formState.value
         val nameError = validateGeneralText(state.name, "Name")
@@ -183,7 +250,7 @@ class VehicleViewModel @Inject constructor(
                 nameError = nameError,
                 brandError = brandError,
                 modelError = modelError,
-                yearError = yearError,
+                yearError = yearError ,
                 plateError = plateError,
                 dgtLabelError = dgtLabelError,
                 isFormValid = nameError == null && brandError == null && modelError == null &&
@@ -239,4 +306,25 @@ class VehicleViewModel @Inject constructor(
     fun clearForm() {
         _formState.value = VehicleFormState()
     }
+
+    // --- REFACTORED: UPDATE REMINDER ---
+    fun updateReminder(vehicleId: String, reminderId: String, title: String, dueDate: Long) {
+        viewModelScope.launch {
+            val updates = mapOf(
+                "title" to title,
+                "dueDate" to dueDate
+            )
+            firestoreRepository.updateReminder(vehicleId, reminderId, updates)
+        }
+    }
+
+    // --- REFACTORED: DELETE REMINDER ---
+    fun deleteReminder(vehicleId: String, reminderId: String) {
+        viewModelScope.launch {
+            firestoreRepository.deleteReminder(vehicleId, reminderId)
+        }
+    }
+
+
+
 }

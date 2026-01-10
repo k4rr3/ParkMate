@@ -1,14 +1,13 @@
-// data/repository/FirestoreRepository.kt
 package com.example.parkmate.data.repository
 
 import android.util.Log
 import com.example.parkmate.data.models.*
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -79,6 +78,65 @@ class FirestoreRepository @Inject constructor() {
             }
     }
 
+    fun getRemindersRealtime(vehicleId: String): Flow<List<CarReminder>> = callbackFlow {
+        val listener = db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else {
+                    val list: List<CarReminder> = snapshot!!.toObjects(CarReminder::class.java)
+                    trySend(list)
+                }
+            }
+
+        awaitClose { listener.remove() }
+    }
+
+    fun addReminder(vehicleId: String, reminder: CarReminder) {
+        val id = db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .document().id
+
+        db.collection("vehicles")
+            .document(vehicleId)
+            .collection("reminders")
+            .document(id)
+            .set(reminder.copy(id = id))
+    }
+    // --- NEW: UPDATE REMINDER ---
+    suspend fun updateReminder(vehicleId: String, reminderId: String, updates: Map<String, Any>): Boolean {
+        return try {
+            db.collection("vehicles")
+                .document(vehicleId)
+                .collection("reminders")
+                .document(reminderId)
+                .update(updates)
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepo", "Error updating reminder", e)
+            false
+        }
+    }
+
+    // --- NEW: DELETE REMINDER ---
+    suspend fun deleteReminder(vehicleId: String, reminderId: String): Boolean {
+        return try {
+            db.collection("vehicles")
+                .document(vehicleId)
+                .collection("reminders")
+                .document(reminderId)
+                .delete()
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("FirestoreRepo", "Error deleting reminder", e)
+            false
+        }
+    }
 
 
     // User Operations
@@ -156,16 +214,27 @@ class FirestoreRepository @Inject constructor() {
             null
         }
     }
-    fun getVehicleRealtime(vehicleId: String, onUpdate: (Vehicle?) -> Unit) {
-        vehiclesCollection.document(vehicleId)
+
+    // ADD THIS NEW, CORRECT FUNCTION
+    fun getVehicleRealtime(vehicleId: String): Flow<Vehicle?> = callbackFlow {
+        val listener = vehiclesCollection.document(vehicleId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    onUpdate(null)
+                    // This will close the flow and be caught by the ViewModel
+                    close(error)
                     return@addSnapshotListener
                 }
-                val vehicle = snapshot?.toObject(Vehicle::class.java)?.copy(id = snapshot?.id ?: "")
-                onUpdate(vehicle)
+                if (snapshot != null && snapshot.exists()) {
+                    val vehicle = snapshot.toObject(Vehicle::class.java)?.copy(id = snapshot.id)
+                    // Send the updated vehicle data to the collector
+                    trySend(vehicle)
+                } else {
+                    // Send null if the document was deleted or doesn't exist
+                    trySend(null)
+                }
             }
+        // This ensures the listener is removed when the ViewModel's scope is cancelled
+        awaitClose { listener.remove() }
     }
 
 
@@ -246,7 +315,7 @@ class FirestoreRepository @Inject constructor() {
             }
     }
 
-    // Zone Operations
+    // --- START: ZONE OPERATIONS ---
     suspend fun getZones(): List<Zone> {
         return try {
             val querySnapshot = zonesCollection.get().await()
@@ -257,6 +326,37 @@ class FirestoreRepository @Inject constructor() {
             emptyList()
         }
     }
+
+    suspend fun addZone(zone: Zone): String {
+        return try {
+            val documentRef = if (zone.id.isNotEmpty()) {
+                zonesCollection.document(zone.id).set(zone).await()
+                zonesCollection.document(zone.id)
+            } else {
+                zonesCollection.add(zone).await()
+            }
+            documentRef.id
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun updateZone(zoneId: String, updates: Map<String, Any>) {
+        try {
+            zonesCollection.document(zoneId).update(updates).await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun deleteZone(zoneId: String) {
+        try {
+            zonesCollection.document(zoneId).delete().await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+    // --- END: ZONE OPERATIONS ---
 
     // Ticket Operations
     suspend fun createTicket(ticket: Ticket): String {

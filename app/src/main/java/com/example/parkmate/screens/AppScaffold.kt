@@ -1,5 +1,7 @@
 package com.example.parkmate.core.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -17,6 +19,7 @@ import com.example.parkmate.screens.Navigation
 import com.example.parkmate.screens.Screen
 import com.example.parkmate.R
 import com.example.parkmate.ui.theme.*
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun  AppScaffold(
@@ -31,7 +34,6 @@ fun  AppScaffold(
         Screen.SplashScreen.route,
         Screen.LoginScreen.route,
         Screen.SignUpScreen.route
-
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -85,6 +87,6 @@ fun  AppScaffold(
 
         },
     ) { innerPadding ->
-        Navigation(navController = navController, innerPadding = innerPadding, snackbarHostState = snackbarHost.snackbarHostState, themeViewModel = themeViewModel, languageViewModel = languageViewModel)
+        Navigation(navController = navController, innerPadding = innerPadding, themeViewModel = themeViewModel, languageViewModel = languageViewModel)
     }
 }

@@ -1,12 +1,8 @@
 package com.example.parkmate.auth
 
-
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,18 +12,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.parkmate.MainActivity
 import com.example.parkmate.R
 import com.example.parkmate.screens.Screen
-import com.example.parkmate.ui.theme.ParkMateTheme
 import com.example.parkmate.ui.components.*
 import com.example.parkmate.ui.theme.DarkBlue
+import com.example.parkmate.ui.components.PpwdFieldConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,17 +73,25 @@ fun LoginScreen(
                     value = viewModel.email,
                     onValueChange = viewModel::updateEmail,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.email),color = MaterialTheme.colorScheme.onBackground) },
-                    isError = mailErrorMessage != null,
-                    supportingText = {
-                        mailErrorMessage?.let {
+                    config = PTextFieldConfig(
+                        label = {
                             Text(
-                                text = it,
-                                color =  MaterialTheme.colorScheme.error
+                                stringResource(R.string.email),
+                                color = MaterialTheme.colorScheme.onBackground
                             )
+                        },
+                        isError = mailErrorMessage != null,
+                        supportingText = {
+                            mailErrorMessage?.let {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
-                    }
+                    )
                 )
+
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -97,17 +99,26 @@ fun LoginScreen(
                     value = viewModel.password,
                     onValueChange = viewModel::updatePassword,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.password),color = MaterialTheme.colorScheme.onBackground) },
-                    isError = passwordErrorMessage != null,
-                    supportingText = {
-                        passwordErrorMessage?.let {
+                    config = PpwdFieldConfig(
+                        label = {
                             Text(
-                                text = it,
-                                color =  MaterialTheme.colorScheme.error
+                                stringResource(R.string.password),
+                                color = MaterialTheme.colorScheme.onBackground
                             )
-                        }
-                    }
+                        },
+                        isError = passwordErrorMessage != null,
+                        supportingText = {
+                            passwordErrorMessage?.let {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
+                        singleLine = true
+                    )
                 )
+
 
                 Spacer(modifier = Modifier.height(8.dp))
 
